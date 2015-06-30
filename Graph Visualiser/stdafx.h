@@ -15,7 +15,6 @@
 #include <cstdlib> // for random number generation
 
 #include <GL\glew.h> // Extension Wrangler
-//#include <glut.h> // Utilities Toolkit
 #include <GL\freeglut.h> // updated Utilities Toolkit
 
 #include <glm\vec3.hpp> // 3D vector glm::vec3
