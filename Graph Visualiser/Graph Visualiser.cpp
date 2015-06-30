@@ -1,23 +1,78 @@
 // Graph Visualiser.cpp : Defines the entry point for the console application.
-//
 
 #include "stdafx.h"
-#include <GL\glew.h> // Extension Wrangler
-#include <glut.h> // Utilities Toolkit
-
-#include <glm\vec3.hpp> // 3D vector glm::vec3
-#include <glm\vec4.hpp> // 4D vector glm::vec4
-#include <glm\mat4x4.hpp> // 4x4 matrices glm::mat4
-#include <glm\gtc\matrix_transform.hpp> // for transforming matrices
-
-#include <string> // for string manipulation
-#include <iostream> // for input/output
 
 using namespace std;
+using namespace glm;
+
+// Global Variables
+GLuint vao = 0;
+GLuint vbo;
+GLuint shaderProgram;
+
+
+vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
+
+	vec3 generatedVec3; // the vec3 to be returned
+	// difficult to think around so setting out intuitively
+	float xMin, xMax, xValue, yMin, yMax, yValue, zMin, zMax, zValue;
+	// get the min/max for each dimension
+	xMin = xRange.x;	xMax = xRange.y;
+	yMin = yRange.x;	yMax = yRange.y;
+	zMin = zRange.x;	zMax = zRange.y;
+
+	float randFloat = (float)rand() / (RAND_MAX + 1); // generate value betweeon 0.0 and 1.0
+	xValue = (randFloat * (xMax - xMin)) + xMin; // multiply and add to get within range
+	randFloat = (float)rand() / (RAND_MAX + 1); // get new value
+	yValue = (randFloat * (yMax - yMin)) + yMin; // continue...
+	randFloat = (float)rand() / (RAND_MAX + 1);
+	zValue = (randFloat * (zMax - zMin)) + zMin;
+
+	/* debugging console output
+	cout << "Generated vector:" << endl;
+	cout << "xValue: " << xValue << endl;
+	cout << "yValue: " << yValue << endl;
+	cout << "zValue: " << zValue << endl;
+	*/
+
+	generatedVec3 = vec3(xValue, yValue, zValue);
+	return generatedVec3;
+}
+
+
+class Node{
+
+public:
+	vec3 vPosition; // make the position of each node public for convenience
+	
+	Node(){} // default constructor
+	
+	void setPosition(vec3 inPosition){
+		vPosition = inPosition;
+	}
+};
+
 
 void init(){
 	// initialisation logic here
 	cout << "Init has been called" << endl;
+
+	cout << "Generating nodes..." << endl;
+
+	Node ListOfNodes [50]; // array of 50 nodes
+	vec2 xRange = vec2(0, 100);
+	vec2 yRange = vec2(0, 100);
+	vec2 zRange = vec2(0, 100);
+
+	for (int i = 0; i < 50; i++){ // generate 50 positions
+		ListOfNodes[i].setPosition(generateVec3(xRange, yRange, zRange));
+		cout << "node generated" << endl;
+	}
+	cout << "all nodes generated." << endl;
+
+	// so now we have all the data, we need to use it...
+
+	
 }
 
 void display(){
@@ -26,12 +81,11 @@ void display(){
 	cout << "Display called" << endl;
 	glClearColor(0.0, 0.0, 0.0, 1.0); // the color to clear to (black)
 	glClear(GL_COLOR_BUFFER_BIT);
+
 	glFlush(); // applies given commands to buffer
 }
 
-
-
-// version 0.1 (experimental)
+// version 0.1.1 (experimental)
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv); // initialise the utility toolkit
@@ -64,4 +118,5 @@ int main(int argc, char *argv[])
 	
 	return 0;
 }
+
 
