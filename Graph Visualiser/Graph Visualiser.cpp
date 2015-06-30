@@ -150,12 +150,11 @@ void keyboard(unsigned char key, int x, int y){ // keyboard callback event
 	// key is the character the key represents
 	// x is the x coordinate of the mouse at the point the key is pressed
 	// y is the y coordinate of the mouse at the point the key is pressed
-	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;
-	
+	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;	
 
 }
 
-void mousemove(int x, int y){
+void mousemove(int x, int y){ // only called when button is down and mouse is moved
 	cout << ".";
 }
 
