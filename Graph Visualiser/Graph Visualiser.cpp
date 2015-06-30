@@ -11,10 +11,10 @@ GLuint vbo;
 GLuint shaderProgram;
 
 // TODO: 
-// 1. get vbo and vao working & understood                                | 60%
+// 1. get vbo and vao working & understood                                | 75%
 // 2. update the display callback to accommodate changes                  | 0%
 // 3. create shaders and get them working                                 | 0%
-// 4. add keyboard controls and camera manipuation                        | 0%
+// 4. add keyboard controls and camera manipuation                        | 10%
 // 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
 
 
@@ -80,7 +80,7 @@ void init(){
 	// define a buffer
 	
 	//Vertex buffer object defines where the vertices will be stored (GPU)
-	int sizeOfData = 3*50*sizeof(float); // random value for testing
+	int sizeOfData = 50*3*sizeof(float); // random value for testing
 	glGenBuffers(0, &vbo); // generate a unique value for the buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vbo); // binds the value to a type GL_ARRAY_BUFFER
 	glBufferData(GL_ARRAY_BUFFER, sizeOfData, ListOfNodes, GL_STATIC_DRAW); // define type of data and size
@@ -88,11 +88,11 @@ void init(){
 
 	// Vertex attribute object defines where the attributes for each vertex are stored and
 	// how they should be interpreted by the GPU
-	glGenBuffers(1, &vao); // generate a unique value for the attrib
-	glBindVertexArray(vao); // binds the vertex attribute array
-	glEnableVertexAttribArray(0); // ?
-	glBindBuffer(GL_ARRAY_BUFFER, vbo); // ?
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
+	//glGenBuffers(1, &vao); // generate a unique value for the attrib
+	//glBindVertexArray(vao); // binds the vertex attribute array
+	//glEnableVertexAttribArray(0); // ?
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo); // ?
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
 
 	// store data on the buffer
 
@@ -111,6 +111,52 @@ void display(){
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glFlush(); // applies given commands to buffer
+}
+
+void mouse(int button, int state, int x, int y){ // mouse callback event
+	// button can be 0 (left) or 2 (right), 1 should be the wheel but isn't implemented as standard
+	// state is binary
+	// x is the x coordinate of the mouse
+	// y is the y coordinate of the cursor
+
+	cout << "button: " << button << ", state: " << state << endl;
+
+	// check for left button press
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+		cout << "mouse position: " << x << "," << y << endl;
+	}
+
+	// check for scroll wheel activity, live check... hello? anyone there?
+	if (button == 1 && state == GLUT_DOWN){
+		// glitch - only runs if the wheel is clicked in :'(
+		cout << "my word, we have a scroller..." << endl;
+	}
+
+	// come on scroll wheel, give me something I can work with :P
+	if (button == 3 && state == GLUT_DOWN){
+		// edit: zero signs of life, TOD: 14:27 30/06/2015
+		cout << "there's a third button?" << endl;
+	}
+
+	// it's like trying to find a needle in a swamp...
+	if (button == 4){
+		// no signal
+		cout << "le 4th button calls." << endl;
+	}
+
+}
+
+void keyboard(unsigned char key, int x, int y){ // keyboard callback event
+	// key is the character the key represents
+	// x is the x coordinate of the mouse at the point the key is pressed
+	// y is the y coordinate of the mouse at the point the key is pressed
+	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;
+	
+
+}
+
+void mousemove(int x, int y){
+	cout << ".";
 }
 
 // version 0.1.1 (experimental)
@@ -136,6 +182,10 @@ int main(int argc, char *argv[])
 	
 	glutDisplayFunc(display); // define the callback function for the display
 	cout << "Display callback run." << endl;
+
+	glutMouseFunc(mouse);
+	glutKeyboardFunc(keyboard);
+	glutMotionFunc(mousemove);
 
 	init(); // custom initialisation code
 	cout << "init() Executed..." << endl;
