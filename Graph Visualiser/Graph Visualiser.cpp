@@ -6,9 +6,16 @@ using namespace std;
 using namespace glm;
 
 // Global Variables
-GLuint vao = 0;
+GLuint vao;
 GLuint vbo;
 GLuint shaderProgram;
+
+// TODO: 
+// 1. get vbo and vao working & understood                                | 60%
+// 2. update the display callback to accommodate changes                  | 0%
+// 3. create shaders and get them working                                 | 0%
+// 4. add keyboard controls and camera manipuation                        | 0%
+// 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
 
 
 vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
@@ -39,7 +46,6 @@ vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 	return generatedVec3;
 }
 
-
 class Node{
 
 public:
@@ -51,7 +57,6 @@ public:
 		vPosition = inPosition;
 	}
 };
-
 
 void init(){
 	// initialisation logic here
@@ -71,6 +76,29 @@ void init(){
 	cout << "all nodes generated." << endl;
 
 	// so now we have all the data, we need to use it...
+
+	// define a buffer
+	
+	//Vertex buffer object defines where the vertices will be stored (GPU)
+	int sizeOfData = 3*50*sizeof(float); // random value for testing
+	glGenBuffers(0, &vbo); // generate a unique value for the buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo); // binds the value to a type GL_ARRAY_BUFFER
+	glBufferData(GL_ARRAY_BUFFER, sizeOfData, ListOfNodes, GL_STATIC_DRAW); // define type of data and size
+
+
+	// Vertex attribute object defines where the attributes for each vertex are stored and
+	// how they should be interpreted by the GPU
+	glGenBuffers(1, &vao); // generate a unique value for the attrib
+	glBindVertexArray(vao); // binds the vertex attribute array
+	glEnableVertexAttribArray(0); // ?
+	glBindBuffer(GL_ARRAY_BUFFER, vbo); // ?
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
+
+	// store data on the buffer
+
+	// decide how to display data in the buffer
+
+	// create shaders
 
 	
 }

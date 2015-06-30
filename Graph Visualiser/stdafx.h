@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <tchar.h>
 
+// TODO: reference additional headers your program requires...
+
 #include <cstdlib> // for random number generation
 
 #include <GL\glew.h> // Extension Wrangler
@@ -22,7 +24,3 @@
 
 #include <string> // for string manipulation
 #include <iostream> // for input/output
-
-
-
-// TODO: reference additional headers your program requires here
