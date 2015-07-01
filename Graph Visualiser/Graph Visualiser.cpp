@@ -107,12 +107,20 @@ void init(){
 	// decide how to display data in the buffer...
 
 	// create shaders
-	const char* vShader1 =
+	const char* vShader =
 		"#version 400\n"
 		"in vec3 vPosition;"
 		"void main(){"
 		"gl_Position = vec4(vPosition, 1.0);" // x,y,z,depth
 		"}";
+
+	const char* fShader = // standard shader for coloring (set to yellow)
+		"#version 400\n"
+		"out vec4 fragColor;"
+		"void main(){ "
+		"	fragColor = vec4(1.0, 1.0, 0.0, 1.0);" // RGBA
+		"}";
+
 
 	const char* vShader3 =
 		"in vec3 vertexPosition;"
@@ -120,53 +128,48 @@ void init(){
 		"uniform mat4 view_matrix;" // for manipulating viewpoint
 		"uniform mat4 model_matrix;" // for moving objects
 		"void main(){"
+		// apparently multiplying it all together works fine... xD
 		"	gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertexPosition, 1);"
 		"}";
 
-	const char* fShader1 =
+	const char* fShader3 = // standard shader for coloring (set to grey)
 		"#version 400\n"
 		"out vec4 fragColor;"
 		"void main(){ "
-		"	fragColor = vec4(1.0, 1.0, 0.0, 1.0);" // RGBA
-		"}";
-
-	const char* fShader3 =
-		"#version 400\n"
-		"out vec4 fragColor;"
-		"void main(){ "
-		"	fragColor = vec4(0.5, 0.5, 0.5, 1.0);" // RGBA
+		"	fragColor = vec4(0.5, 1.0, 0.5, 1.0);" // RGBA
 		"}";
 
 	// compile shaders
 	GLuint vS = glCreateShader(GL_VERTEX_SHADER); // create a vertex shader identifier
-	glShaderSource(vS, 1, &vShader1, NULL); // get the source for the shader
+	glShaderSource(vS, 1, &vShader, NULL); // get the source for the shader
 	glCompileShader(vS); // compile the shader
 	cout << "vertex shader compiled" << endl;
 
 	GLuint fS = glCreateShader(GL_FRAGMENT_SHADER); // create a fragment shader identifier
-	glShaderSource(fS, 1, &fShader1, NULL); // get the source
+	glShaderSource(fS, 1, &fShader, NULL); // get the source
 	glCompileShader(fS); // compile the shader
 	cout << "fragment shader compiled" << endl;
 
-	GLuint vS3 = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vS3, 1, &vShader3, NULL);
-	glCompileShader(vS3);
-
-	GLuint fS3 = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(fS3, 1, &fShader3, NULL);
-	glCompileShader(fS3);
-
-	// create shader program(s)
+	// create shader program
 	shaderProgram = glCreateProgram(); // create an empty program
 	glAttachShader(shaderProgram, fS); // attach the fragment shader
 	glAttachShader(shaderProgram, vS); // attach the vertex shader
 	glLinkProgram(shaderProgram); // link them together
 	cout << "shader program created and linked" << endl;
 
-	shaderProg3d = glCreateProgram();
-	glAttachShader(shaderProg3d, fS3);
-	glAttachShader(shaderProg3d, vS3);
-	glLinkProgram(shaderProg3d);
+	// -- 3D SHADERS -- //
+	GLuint vS3 = glCreateShader(GL_VERTEX_SHADER); // define the 3D vertex shader
+	glShaderSource(vS3, 1, &vShader3, NULL); // match it to the source code
+	glCompileShader(vS3);
+
+	GLuint fS3 = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(fS3, 1, &fShader3, NULL);
+	glCompileShader(fS3);
+
+	shaderProg3d = glCreateProgram(); // shader with 3D capabilities
+	glAttachShader(shaderProg3d, fS3); // fragment shader only handles color
+	glAttachShader(shaderProg3d, vS3); // vertex shader has 3 matrices for manipulation
+	glLinkProgram(shaderProg3d); // link the two into one program
 	
 }
 
@@ -177,7 +180,7 @@ void display(){
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	cout << "screen cleared" << endl;
-	glUseProgram(shaderProg3d); // using the shader program from init()...
+	glUseProgram(shaderProg3d); // using a shader program from init()...
 	cout << "using shader program" << endl;
 
 	// manipulate uniform values in the vertex shader
@@ -247,7 +250,7 @@ int main(int argc, char *argv[])
 	glutInitWindowPosition(0, 0); // top left
 	cout << "Window Position set to (0,0)." << endl;
 
-	glutCreateWindow("Window Title"); // name the window
+	glutCreateWindow("OpenGL Incremental Development v0.1.3"); // name the window
 	cout << "Window title set." << endl;
 
 	glewInit(); // initialise the extension wrangler
