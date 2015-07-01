@@ -6,14 +6,15 @@ using namespace std;
 using namespace glm;
 
 // Global Variables
-GLuint vao;
-GLuint vbo;
-GLuint shaderProgram;
+GLuint vao, vbo;
+GLuint shaderProgram, shaderProg3d;
+
+GLuint vbo2;
 
 // TODO: 
-// 1. get vbo and vao working & understood                                | 75%
-// 2. update the display callback to accommodate changes                  | 0%
-// 3. create shaders and get them working                                 | 0%
+// 1. get vbo and vao working & understood                                | 90%
+// 2. update the display callback to accommodate changes                  | 50%
+// 3. create shaders and get them working                                 | 50%
 // 4. add keyboard controls and camera manipuation                        | 10%
 // 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
 
@@ -46,18 +47,6 @@ vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 	return generatedVec3;
 }
 
-class Node{
-
-public:
-	vec3 vPosition; // make the position of each node public for convenience
-	
-	Node(){} // default constructor
-	
-	void setPosition(vec3 inPosition){
-		vPosition = inPosition;
-	}
-};
-
 void init(){
 	// initialisation logic here
 	cout << "Init has been called" << endl;
@@ -79,7 +68,20 @@ void init(){
 
 	// define a buffer
 	float testData[] = { 0.1f, 0.1f, 0.0f,	0.1f, 0.8f, 0.0f,	0.7f, 0.45f, 0.0f,		-0.1f,-0.1f,0.0f,	-0.1f,-0.8f,0.0f,	-0.7f,-0.45f,0.0f}; // two triangles
-	
+	float thirdTri[] = { -0.1f, 0.1f, 0.0f,   -0.1f, 0.8f, 0.0f,    -0.7f, 0.45f, 0.0f };
+
+	float allTriangles[27];	
+
+	for (int i = 0; i < 27; i++){
+		if (i < 18){
+			allTriangles[i] = testData[i];
+		}
+		if (i >= 18){
+			allTriangles[i] = thirdTri[i - 18];
+		}			
+		cout << allTriangles[i] << endl;
+	}
+
 	//Vertex buffer object defines where the vertices will be stored (GPU)
 	int sizeOfData = 18*sizeof(float); // value for testing
 	glGenBuffers(1, &vbo); // generate a unique value for the buffer
@@ -87,17 +89,20 @@ void init(){
 	glBufferData(GL_ARRAY_BUFFER, sizeOfData, testData, GL_STATIC_DRAW); // define type of data and size
 	cout << "vertex buffer object defined" << endl;
 
+	int sizeOfAll = 27 * sizeof(float);
+	glGenBuffers(1, &vbo2);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+	glBufferData(GL_ARRAY_BUFFER, sizeOfAll, allTriangles, GL_STATIC_DRAW);
+	
 
 	// Vertex attribute object defines where the attributes for each vertex are stored and
 	//how they should be interpreted by the GPU 
 	glGenBuffers(1, &vao); // generate a unique value for the attrib
 	glBindVertexArray(vao); // binds the vertex attribute array
 	glEnableVertexAttribArray(0); // ?
-	glBindBuffer(GL_ARRAY_BUFFER, vbo); // shows that these arrtibuts apply to the 'vbo' buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2); // shows that these arrtibuts apply to the 'vbo' buffer
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
 	cout << "vertex attribute object defined" << endl;
-
-	// store data on the buffer
 
 	// decide how to display data in the buffer
 
@@ -106,14 +111,23 @@ void init(){
 		"#version 400\n"
 		"in vec3 vPosition;"
 		"void main(){"
-		"gl_Position = vec4(vPosition, 1.0);"
+		"gl_Position = vec4(vPosition, 1.0);" // x,y,z,depth
+		"}";
+
+	const char* vShader3D =
+		"in vec3 vertexPosition;"
+		"uniform mat4 projection_matix;"
+		"uniform mat4 view_matrix;"
+		"uniform mat4 model_matrix;"
+		"void main(){"
+		"	gl_Position = projection_matrix * view_matrix * model_matrix *vec4(vertexPosition, 1);"
 		"}";
 
 	const char* fShader1 =
 		"#version 400\n"
 		"out vec4 fragColor;"
 		"void main(){ "
-		"fragColor = vec4(0.5, 1.0, 0.0, 1.0);"
+		"	fragColor = vec4(1.0, 1.0, 0.0, 1.0);" // RGBA
 		"}"; 
 
 	// compile shaders
@@ -122,10 +136,14 @@ void init(){
 	glCompileShader(vS); // compile the shader
 	cout << "vertex shader compiled" << endl;
 
-	GLuint fS = glCreateShader(GL_FRAGMENT_SHADER); // create a freagment shader identifier
+	GLuint fS = glCreateShader(GL_FRAGMENT_SHADER); // create a fragment shader identifier
 	glShaderSource(fS, 1, &fShader1, NULL); // get the source
 	glCompileShader(fS); // compile the shader
 	cout << "fragment shader compiled" << endl;
+
+	GLuint vS3 = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vS3, 1, &vShader3D, NULL);
+	glCompileShader(vS3);
 
 	// create shader program
 	shaderProgram = glCreateProgram(); // create an empty program
@@ -133,6 +151,12 @@ void init(){
 	glAttachShader(shaderProgram, vS); // attach the vertex shader
 	glLinkProgram(shaderProgram); // link them together
 	cout << "shader program created and linked" << endl;
+
+	shaderProg3d = glCreateProgram();
+	glAttachShader(shaderProg3d, fS);
+	glAttachShader(shaderProg3d, vS3);
+	glLinkProgram(shaderProg3d);
+
 
 }
 
@@ -142,13 +166,14 @@ void display(){
 	glClearColor(0.0, 0.0, 0.0, 1.0); // the color to clear to (black)
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	
 
 	cout << "screen cleared" << endl;
 	glUseProgram(shaderProgram); // using the shader program from init()...
 	cout << "using shader program" << endl;
 	glBindVertexArray(vao);
 	cout << "vao bound" << endl;
-	glDrawArrays(GL_TRIANGLES, 0,6); // draw the points in the currently bound vao with current shader
+	glDrawArrays(GL_TRIANGLES, 0,9); // draw the points in the currently bound vao with current shader
 	cout << "triangles drawn" << endl;
 
 	glFlush(); // applies given commands to buffer
