@@ -67,10 +67,10 @@ void init(){
 	// so now we have all the data, we need to use it...
 
 	// define a buffer
-	float testData[] = { 0.1f, 0.1f, 0.0f,	0.1f, 0.8f, 0.0f,	0.7f, 0.45f, 0.0f,		-0.1f,-0.1f,0.0f,	-0.1f,-0.8f,0.0f,	-0.7f,-0.45f,0.0f}; // two triangles
-	float thirdTri[] = { -0.1f, 0.1f, 0.0f,   -0.1f, 0.8f, 0.0f,    -0.7f, 0.45f, 0.0f };
+	float testData[] = { 0.1f, 0.1f, 0.0f, 0.1f, 0.8f, 0.0f, 0.7f, 0.45f, 0.0f, -0.1f, -0.1f, 0.0f, -0.1f, -0.8f, 0.0f, -0.7f, -0.45f, 0.0f }; // two triangles
+	float thirdTri[] = { -0.1f, 0.1f, 0.0f, -0.1f, 0.8f, 0.0f, -0.7f, 0.45f, 0.0f };
 
-	float allTriangles[27];	
+	float allTriangles[27];
 
 	for (int i = 0; i < 27; i++){
 		if (i < 18){
@@ -78,12 +78,12 @@ void init(){
 		}
 		if (i >= 18){
 			allTriangles[i] = thirdTri[i - 18];
-		}			
+		}
 		cout << allTriangles[i] << endl;
 	}
 
 	//Vertex buffer object defines where the vertices will be stored (GPU)
-	int sizeOfData = 18*sizeof(float); // value for testing
+	int sizeOfData = 18 * sizeof(float); // value for testing
 	glGenBuffers(1, &vbo); // generate a unique value for the buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vbo); // binds the value to a type GL_ARRAY_BUFFER (activates it)
 	glBufferData(GL_ARRAY_BUFFER, sizeOfData, testData, GL_STATIC_DRAW); // define type of data and size
@@ -93,7 +93,7 @@ void init(){
 	glGenBuffers(1, &vbo2);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
 	glBufferData(GL_ARRAY_BUFFER, sizeOfAll, allTriangles, GL_STATIC_DRAW);
-	
+
 
 	// Vertex attribute object defines where the attributes for each vertex are stored and
 	//how they should be interpreted by the GPU 
@@ -104,7 +104,7 @@ void init(){
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
 	cout << "vertex attribute object defined" << endl;
 
-	// decide how to display data in the buffer
+	// decide how to display data in the buffer...
 
 	// create shaders
 	const char* vShader1 =
@@ -114,13 +114,13 @@ void init(){
 		"gl_Position = vec4(vPosition, 1.0);" // x,y,z,depth
 		"}";
 
-	const char* vShader3D =
+	const char* vShader3 =
 		"in vec3 vertexPosition;"
-		"uniform mat4 projection_matix;"
-		"uniform mat4 view_matrix;"
-		"uniform mat4 model_matrix;"
+		"uniform mat4 projection_matix;" // for perspective, aspect ratio and clipping
+		"uniform mat4 view_matrix;" // for manipulating viewpoint
+		"uniform mat4 model_matrix;" // for moving objects
 		"void main(){"
-		"	gl_Position = projection_matrix * view_matrix * model_matrix *vec4(vertexPosition, 1);"
+		"	gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertexPosition, 1);"
 		"}";
 
 	const char* fShader1 =
@@ -128,7 +128,14 @@ void init(){
 		"out vec4 fragColor;"
 		"void main(){ "
 		"	fragColor = vec4(1.0, 1.0, 0.0, 1.0);" // RGBA
-		"}"; 
+		"}";
+
+	const char* fShader3 =
+		"#version 400\n"
+		"out vec4 fragColor;"
+		"void main(){ "
+		"	fragColor = vec4(0.5, 0.5, 0.5, 1.0);" // RGBA
+		"}";
 
 	// compile shaders
 	GLuint vS = glCreateShader(GL_VERTEX_SHADER); // create a vertex shader identifier
@@ -142,10 +149,14 @@ void init(){
 	cout << "fragment shader compiled" << endl;
 
 	GLuint vS3 = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vS3, 1, &vShader3D, NULL);
+	glShaderSource(vS3, 1, &vShader3, NULL);
 	glCompileShader(vS3);
 
-	// create shader program
+	GLuint fS3 = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(fS3, 1, &fShader3, NULL);
+	glCompileShader(fS3);
+
+	// create shader program(s)
 	shaderProgram = glCreateProgram(); // create an empty program
 	glAttachShader(shaderProgram, fS); // attach the fragment shader
 	glAttachShader(shaderProgram, vS); // attach the vertex shader
@@ -153,11 +164,10 @@ void init(){
 	cout << "shader program created and linked" << endl;
 
 	shaderProg3d = glCreateProgram();
-	glAttachShader(shaderProg3d, fS);
+	glAttachShader(shaderProg3d, fS3);
 	glAttachShader(shaderProg3d, vS3);
 	glLinkProgram(shaderProg3d);
-
-
+	
 }
 
 void display(){
@@ -166,14 +176,29 @@ void display(){
 	glClearColor(0.0, 0.0, 0.0, 1.0); // the color to clear to (black)
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	
-
 	cout << "screen cleared" << endl;
-	glUseProgram(shaderProgram); // using the shader program from init()...
+	glUseProgram(shaderProg3d); // using the shader program from init()...
 	cout << "using shader program" << endl;
+
+	// manipulate uniform values in the vertex shader
+	mat4 Projection, View, Model; // the matrices for easier manipulation
+
+	// perform any matrix alterations here...
+
+
+
+	GLuint projLoc = glGetUniformLocation(shaderProg3d, "projection_matrix"); // get the location of the shader variable
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(Projection)); // set it to the relevant matrix above
+
+	GLuint viewLoc = glGetUniformLocation(shaderProg3d, "view_matrix"); // same for the view matrix
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(View)); // set it here
+
+	GLuint modelLoc = glGetUniformLocation(shaderProg3d, "model_matrix"); // same for the model matrix
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(Model)); // set it here
+
 	glBindVertexArray(vao);
 	cout << "vao bound" << endl;
-	glDrawArrays(GL_TRIANGLES, 0,9); // draw the points in the currently bound vao with current shader
+	glDrawArrays(GL_TRIANGLES, 0, 9); // draw the points in the currently bound vao with current shader
 	cout << "triangles drawn" << endl;
 
 	glFlush(); // applies given commands to buffer
@@ -194,7 +219,7 @@ void keyboard(unsigned char key, int x, int y){ // keyboard callback event
 	// key is the character the key represents
 	// x is the x coordinate of the mouse at the point the key is pressed
 	// y is the y coordinate of the mouse at the point the key is pressed
-	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;	
+	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;
 
 }
 
@@ -202,7 +227,12 @@ void mousemove(int x, int y){ // only called when button is down and mouse is mo
 	cout << ".";
 }
 
-// version 0.1.2 (experimental)
+void idle(){
+	// things to do when nothing else is happening
+	// it is called very quickly! (timer mayb?)
+};
+
+// version 0.1.3 (experimental)
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv); // initialise the utility toolkit
@@ -229,6 +259,7 @@ int main(int argc, char *argv[])
 	glutMouseFunc(mouse);
 	glutKeyboardFunc(keyboard);
 	glutMotionFunc(mousemove);
+	glutIdleFunc(idle);
 
 	init(); // custom initialisation code
 	cout << "init() Executed..." << endl;

@@ -21,6 +21,7 @@
 #include <glm\vec4.hpp> // 4D vector glm::vec4
 #include <glm\mat4x4.hpp> // 4x4 matrices glm::mat4
 #include <glm\gtc\matrix_transform.hpp> // for transforming matrices
+#include <glm\gtc\type_ptr.hpp> // conversions for OpenGL accepted types
 
 #include <string> // for string manipulation
 #include <iostream> // for input/output
