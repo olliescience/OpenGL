@@ -35,12 +35,12 @@ vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 	randFloat = (float)rand() / (RAND_MAX + 1);
 	zValue = (randFloat * (zMax - zMin)) + zMin;
 
-	/* debugging console output
+	/* debugging console output*/
 	cout << "Generated vector:" << endl;
 	cout << "xValue: " << xValue << endl;
 	cout << "yValue: " << yValue << endl;
 	cout << "zValue: " << zValue << endl;
-	*/
+	
 
 	generatedVec3 = vec3(xValue, yValue, zValue);
 	return generatedVec3;
@@ -62,53 +62,94 @@ void init(){
 	// initialisation logic here
 	cout << "Init has been called" << endl;
 
-	cout << "Generating nodes..." << endl;
+	//cout << "Generating nodes..." << endl;
 
-	Node ListOfNodes [50]; // array of 50 nodes
-	vec2 xRange = vec2(0, 100);
-	vec2 yRange = vec2(0, 100);
-	vec2 zRange = vec2(0, 100);
+	//Node ListOfNodes [50]; // array of 50 nodes
+	//vec2 xRange = vec2(0, 1);
+	//vec2 yRange = vec2(0, 1);
+	//vec2 zRange = vec2(-1, 0);
 
-	for (int i = 0; i < 50; i++){ // generate 50 positions
-		ListOfNodes[i].setPosition(generateVec3(xRange, yRange, zRange));
-		cout << "node generated" << endl;
-	}
-	cout << "all nodes generated." << endl;
+	//for (int i = 0; i < 50; i++){ // generate 50 positions
+	//	ListOfNodes[i].setPosition(generateVec3(xRange, yRange, zRange));
+	//	cout << "node generated" << endl;
+	//}
+	//cout << "all nodes generated." << endl;
 
 	// so now we have all the data, we need to use it...
 
 	// define a buffer
+	float testData[] = { 0.1f, 0.1f, 0.0f,	0.1f, 0.8f, 0.0f,	0.7f, 0.45f, 0.0f,		-0.1f,-0.1f,0.0f,	-0.1f,-0.8f,0.0f,	-0.7f,-0.45f,0.0f}; // two triangles
 	
 	//Vertex buffer object defines where the vertices will be stored (GPU)
-	int sizeOfData = 50*3*sizeof(float); // random value for testing
-	glGenBuffers(0, &vbo); // generate a unique value for the buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo); // binds the value to a type GL_ARRAY_BUFFER
-	glBufferData(GL_ARRAY_BUFFER, sizeOfData, ListOfNodes, GL_STATIC_DRAW); // define type of data and size
+	int sizeOfData = 18*sizeof(float); // value for testing
+	glGenBuffers(1, &vbo); // generate a unique value for the buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo); // binds the value to a type GL_ARRAY_BUFFER (activates it)
+	glBufferData(GL_ARRAY_BUFFER, sizeOfData, testData, GL_STATIC_DRAW); // define type of data and size
+	cout << "vertex buffer object defined" << endl;
 
 
 	// Vertex attribute object defines where the attributes for each vertex are stored and
-	// how they should be interpreted by the GPU
-	//glGenBuffers(1, &vao); // generate a unique value for the attrib
-	//glBindVertexArray(vao); // binds the vertex attribute array
-	//glEnableVertexAttribArray(0); // ?
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo); // ?
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
+	//how they should be interpreted by the GPU 
+	glGenBuffers(1, &vao); // generate a unique value for the attrib
+	glBindVertexArray(vao); // binds the vertex attribute array
+	glEnableVertexAttribArray(0); // ?
+	glBindBuffer(GL_ARRAY_BUFFER, vbo); // shows that these arrtibuts apply to the 'vbo' buffer
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
+	cout << "vertex attribute object defined" << endl;
 
 	// store data on the buffer
 
 	// decide how to display data in the buffer
 
 	// create shaders
+	const char* vShader1 =
+		"#version 400\n"
+		"in vec3 vPosition;"
+		"void main(){"
+		"gl_Position = vec4(vPosition, 1.0);"
+		"}";
 
-	
+	const char* fShader1 =
+		"#version 400\n"
+		"out vec4 fragColor;"
+		"void main(){ "
+		"fragColor = vec4(0.5, 1.0, 0.0, 1.0);"
+		"}"; 
+
+	// compile shaders
+	GLuint vS = glCreateShader(GL_VERTEX_SHADER); // create a vertex shader identifier
+	glShaderSource(vS, 1, &vShader1, NULL); // get the source for the shader
+	glCompileShader(vS); // compile the shader
+	cout << "vertex shader compiled" << endl;
+
+	GLuint fS = glCreateShader(GL_FRAGMENT_SHADER); // create a freagment shader identifier
+	glShaderSource(fS, 1, &fShader1, NULL); // get the source
+	glCompileShader(fS); // compile the shader
+	cout << "fragment shader compiled" << endl;
+
+	// create shader program
+	shaderProgram = glCreateProgram(); // create an empty program
+	glAttachShader(shaderProgram, fS); // attach the fragment shader
+	glAttachShader(shaderProgram, vS); // attach the vertex shader
+	glLinkProgram(shaderProgram); // link them together
+	cout << "shader program created and linked" << endl;
+
 }
 
 void display(){
 	// all display related code in here
 	// like glDrawArrays(...) etc.
-	cout << "Display called" << endl;
 	glClearColor(0.0, 0.0, 0.0, 1.0); // the color to clear to (black)
 	glClear(GL_COLOR_BUFFER_BIT);
+
+
+	cout << "screen cleared" << endl;
+	glUseProgram(shaderProgram); // using the shader program from init()...
+	cout << "using shader program" << endl;
+	glBindVertexArray(vao);
+	cout << "vao bound" << endl;
+	glDrawArrays(GL_TRIANGLES, 0,6); // draw the points in the currently bound vao with current shader
+	cout << "triangles drawn" << endl;
 
 	glFlush(); // applies given commands to buffer
 }
@@ -121,28 +162,6 @@ void mouse(int button, int state, int x, int y){ // mouse callback event
 
 	cout << "button: " << button << ", state: " << state << endl;
 
-	// check for left button press
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
-		cout << "mouse position: " << x << "," << y << endl;
-	}
-
-	// check for scroll wheel activity, live check... hello? anyone there?
-	if (button == 1 && state == GLUT_DOWN){
-		// glitch - only runs if the wheel is clicked in :'(
-		cout << "my word, we have a scroller..." << endl;
-	}
-
-	// come on scroll wheel, give me something I can work with :P
-	if (button == 3 && state == GLUT_DOWN){
-		// edit: zero signs of life, TOD: 14:27 30/06/2015
-		cout << "there's a third button?" << endl;
-	}
-
-	// it's like trying to find a needle in a swamp...
-	if (button == 4){
-		// no signal
-		cout << "le 4th button calls." << endl;
-	}
 
 }
 
@@ -158,7 +177,7 @@ void mousemove(int x, int y){ // only called when button is down and mouse is mo
 	cout << ".";
 }
 
-// version 0.1.1 (experimental)
+// version 0.1.2 (experimental)
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv); // initialise the utility toolkit
