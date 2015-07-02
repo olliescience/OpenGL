@@ -1,5 +1,4 @@
 // Graph Visualiser.cpp : Defines the entry point for the console application.
-
 #include "stdafx.h"
 
 using namespace std;
@@ -9,8 +8,6 @@ using namespace glm;
 GLuint vao, vbo;
 GLuint shaderProgram, shaderProg3d;
 GLuint vbo2;
-
-// manipulate uniform values in the vertex shader
 mat4 Projection, // for scene projection to viewer
 	 View, // location and nature of observer
 	 Model; // for manipulating position/rotation
