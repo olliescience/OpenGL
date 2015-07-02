@@ -10,11 +10,23 @@ GLuint vao, vbo;
 GLuint shaderProgram, shaderProg3d;
 GLuint vbo2;
 
+// manipulate uniform values in the vertex shader
+mat4 Projection, // for scene projection to viewer
+	 View, // location and nature of observer
+	 Model; // for manipulating position/rotation
+
+float FOV = 45.0f; // field of view (projection)
+float AR = 1.0f; // aspect ratio (projection)
+float NEARclip = 0.0f; // closest object to draw distance (projection)
+float FARclip = 100.0f; // furthest object to draw distance (projection)
+
+float ROTATION = 0.0f; // rotation (model)
+
 // TODO: 
 // 1. get vbo and vao working & understood                                | 90%
 // 2. update the display callback to accommodate changes                  | 50%
-// 3. create shaders and get them working                                 | 50%
-// 4. add keyboard controls and camera manipuation                        | 10%
+// 3. create shaders and get them working                                 | 90%
+// 4. add keyboard controls and camera manipuation                        | 60%
 // 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
 
 vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
@@ -164,8 +176,7 @@ void init(){
 	glAttachShader(shaderProgram, fS); // attach the fragment shader
 	glAttachShader(shaderProgram, vS); // attach the vertex shader
 	glLinkProgram(shaderProgram); // link them together
-
-
+	
 	shaderProg3d = glCreateProgram(); // shader with 3D capabilities
 	glAttachShader(shaderProg3d, fS3); // fragment shader only handles color
 	glAttachShader(shaderProg3d, vS3); // vertex shader has 3 matrices for manipulation
@@ -179,21 +190,18 @@ void display(){
 	glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (black)
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	cout << "screen cleared" << endl;
+	//cout << "screen cleared" << endl;
 	glUseProgram(shaderProg3d); // using a shader program from init()...
-	cout << "using shader program" << endl;
-
-	// manipulate uniform values in the vertex shader
-	mat4 Projection, // for scene projection to viewer
-		 View, // location and nature of observer
-		 Model; // for manipulating position/rotation
-
+	//cout << "using shader program" << endl;
+	
 	// perform any matrix alterations here...
 	//Projection = ortho(-4.0f / 3.0f, 4.0f / 3.0f, -1.0f, 1.0f, 0.0f, 1000.0f);
 	//     orthographic    left         right      top   bot   near  far
-	Projection = perspective(45.0f, 2.0f, 0.0f, 10.0f);
+	
+	Projection = perspective(FOV, AR, 0.0f, 10.0f);
 
-	Model = translate(Model, vec3(0.1f, 0.1f, -10.0f)); // move left, up and back
+	Model = rotate(Model, ROTATION, vec3(0.0f, 0.0f, -0.2f)); // rotate then translate for normal effects
+	Model = translate(Model, vec3(0.0f, 0.0f, -5.0f)); // move left, up and back
 	//                mat4         x     y      z
 
 	View = translate(View, vec3(0.0f, 0.0f, 3.0f));
@@ -208,9 +216,9 @@ void display(){
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(Model)); // set it here
 
 	glBindVertexArray(vao);
-	cout << "vao bound" << endl;
+	//cout << "vao bound" << endl;
 	glDrawArrays(GL_TRIANGLES, 0, 9); // draw the points in the currently bound vao with current shader
-	cout << "triangles drawn" << endl;
+	//cout << "triangles drawn" << endl;
 
 	glFlush(); // applies given commands to buffer
 }
@@ -220,10 +228,7 @@ void mouse(int button, int state, int x, int y){ // mouse callback event
 	// state is binary
 	// x is the x coordinate of the mouse
 	// y is the y coordinate of the cursor
-
 	cout << "button: " << button << ", state: " << state << endl;
-
-
 }
 
 void keyboard(unsigned char key, int x, int y){ // keyboard callback event
@@ -232,6 +237,25 @@ void keyboard(unsigned char key, int x, int y){ // keyboard callback event
 	// y is the y coordinate of the mouse at the point the key is pressed
 	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;
 
+	if (key == 27){ // escape key to close
+		exit(0);
+	}
+	if (key == 'w'){
+		FOV += 0.2f;
+		cout << FOV << endl;
+	}
+	if (key == 's'){
+		FOV -= 0.2f;
+		cout << FOV << endl;
+	}
+	if (key == 'a'){
+		ROTATION -= 0.02f;
+	}
+	if (key == 'd'){
+		ROTATION += 0.02f;
+	}
+
+	glutPostRedisplay();
 }
 
 void mousemove(int x, int y){ // only called when button is down and mouse is moved
