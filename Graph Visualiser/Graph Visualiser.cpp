@@ -8,7 +8,6 @@ using namespace glm;
 // Global Variables
 GLuint vao, vbo;
 GLuint shaderProgram, shaderProg3d;
-
 GLuint vbo2;
 
 // TODO: 
@@ -17,7 +16,6 @@ GLuint vbo2;
 // 3. create shaders and get them working                                 | 50%
 // 4. add keyboard controls and camera manipuation                        | 10%
 // 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
-
 
 vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 
@@ -70,8 +68,9 @@ void init(){
 	float testData[] = { 0.1f, 0.1f, 0.0f, 0.1f, 0.8f, 0.0f, 0.7f, 0.45f, 0.0f, -0.1f, -0.1f, 0.0f, -0.1f, -0.8f, 0.0f, -0.7f, -0.45f, 0.0f }; // two triangles
 	float thirdTri[] = { -0.1f, 0.1f, 0.0f, -0.1f, 0.8f, 0.0f, -0.7f, 0.45f, 0.0f };
 
-	float allTriangles[27];
+	float allTriangles[27]; // an array to hold all triangles
 
+	// add all the triangles into one array
 	for (int i = 0; i < 27; i++){
 		if (i < 18){
 			allTriangles[i] = testData[i];
@@ -79,6 +78,7 @@ void init(){
 		if (i >= 18){
 			allTriangles[i] = thirdTri[i - 18];
 		}
+		// print the values to the console for debugging
 		cout << allTriangles[i] << endl;
 	}
 
@@ -111,7 +111,7 @@ void init(){
 		"#version 400\n"
 		"in vec3 vPosition;"
 		"void main(){"
-		"gl_Position = vec4(vPosition, 1.0);" // x,y,z,depth
+		"	gl_Position = vec4(vPosition, 1.0);" // x,y,z,depth
 		"}";
 
 	const char* fShader = // standard shader for coloring (set to yellow)
@@ -121,10 +121,10 @@ void init(){
 		"	fragColor = vec4(1.0, 1.0, 0.0, 1.0);" // RGBA
 		"}";
 
-
 	const char* vShader3 =
+		"#version 400\n"
 		"in vec3 vertexPosition;"
-		"uniform mat4 projection_matix;" // for perspective, aspect ratio and clipping
+		"uniform mat4 projection_matrix;" // for perspective, aspect ratio and clipping
 		"uniform mat4 view_matrix;" // for manipulating viewpoint
 		"uniform mat4 model_matrix;" // for moving objects
 		"void main(){"
@@ -132,10 +132,10 @@ void init(){
 		"	gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertexPosition, 1);"
 		"}";
 
-	const char* fShader3 = // standard shader for coloring (set to grey)
+	const char* fShader3 = // standard shader for coloring
 		"#version 400\n"
 		"out vec4 fragColor;"
-		"void main(){ "
+		"void main(){"
 		"	fragColor = vec4(0.5, 1.0, 0.5, 1.0);" // RGBA
 		"}";
 
@@ -150,21 +150,21 @@ void init(){
 	glCompileShader(fS); // compile the shader
 	cout << "fragment shader compiled" << endl;
 
+	// -- 3D SHADERS -- //
+	GLuint vS3 = glCreateShader(GL_VERTEX_SHADER); // define the 3D vertex shader
+	glShaderSource(vS3, 1, &vShader3, NULL); // match it to the source code
+	glCompileShader(vS3); // compile the shader
+
+	GLuint fS3 = glCreateShader(GL_FRAGMENT_SHADER); // define the fragment shader
+	glShaderSource(fS3, 1, &fShader3, NULL); // match the shader identifier with the source
+	glCompileShader(fS3); // compile the shader
+
 	// create shader program
 	shaderProgram = glCreateProgram(); // create an empty program
 	glAttachShader(shaderProgram, fS); // attach the fragment shader
 	glAttachShader(shaderProgram, vS); // attach the vertex shader
 	glLinkProgram(shaderProgram); // link them together
-	cout << "shader program created and linked" << endl;
 
-	// -- 3D SHADERS -- //
-	GLuint vS3 = glCreateShader(GL_VERTEX_SHADER); // define the 3D vertex shader
-	glShaderSource(vS3, 1, &vShader3, NULL); // match it to the source code
-	glCompileShader(vS3);
-
-	GLuint fS3 = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(fS3, 1, &fShader3, NULL);
-	glCompileShader(fS3);
 
 	shaderProg3d = glCreateProgram(); // shader with 3D capabilities
 	glAttachShader(shaderProg3d, fS3); // fragment shader only handles color
@@ -176,7 +176,7 @@ void init(){
 void display(){
 	// all display related code in here
 	// like glDrawArrays(...) etc.
-	glClearColor(0.0, 0.0, 0.0, 1.0); // the color to clear to (black)
+	glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (black)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	cout << "screen cleared" << endl;
@@ -184,11 +184,19 @@ void display(){
 	cout << "using shader program" << endl;
 
 	// manipulate uniform values in the vertex shader
-	mat4 Projection, View, Model; // the matrices for easier manipulation
+	mat4 Projection, // for scene projection to viewer
+		 View, // location and nature of observer
+		 Model; // for manipulating position/rotation
 
 	// perform any matrix alterations here...
+	//Projection = ortho(-4.0f / 3.0f, 4.0f / 3.0f, -1.0f, 1.0f, 0.0f, 1000.0f);
+	//     orthographic    left         right      top   bot   near  far
+	Projection = perspective(45.0f, 2.0f, 0.0f, 10.0f);
 
+	Model = translate(Model, vec3(0.1f, 0.1f, -10.0f)); // move left, up and back
+	//                mat4         x     y      z
 
+	View = translate(View, vec3(0.0f, 0.0f, 3.0f));
 
 	GLuint projLoc = glGetUniformLocation(shaderProg3d, "projection_matrix"); // get the location of the shader variable
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(Projection)); // set it to the relevant matrix above
@@ -235,7 +243,7 @@ void idle(){
 	// it is called very quickly! (timer mayb?)
 };
 
-// version 0.1.3 (experimental)
+// version 0.1.4 (experimental)
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv); // initialise the utility toolkit
