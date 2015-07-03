@@ -1,30 +1,42 @@
 // Graph Visualiser.cpp : Defines the entry point for the console application.
 #include "stdafx.h"
 
-using namespace std;
-using namespace glm;
-
-// Global Variables
-GLuint vao, vbo;
-GLuint shaderProgram, shaderProg3d;
-GLuint vbo2;
-mat4 Projection, // for scene projection to viewer
-	 View, // location and nature of observer
-	 Model; // for manipulating position/rotation
-
-float FOV = 45.0f; // field of view (projection)
-float AR = 1.0f; // aspect ratio (projection)
-float NEARclip = 0.0f; // closest object to draw distance (projection)
-float FARclip = 100.0f; // furthest object to draw distance (projection)
-
-float ROTATION = 0.0f; // rotation (model)
-
 // TODO: 
 // 1. get vbo and vao working & understood                                | 90%
 // 2. update the display callback to accommodate changes                  | 50%
 // 3. create shaders and get them working                                 | 90%
 // 4. add keyboard controls and camera manipuation                        | 60%
 // 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
+
+using namespace std; // make writing system functions easier
+using namespace glm; // make writing the maths easier
+
+// Global Variables
+GLuint vao, vbo, vbo2; // vertex buffer and attibute objects
+GLuint shaderProgram, shaderProg3d; // shader programs
+
+int WINDOW_WIDTH = 1280;
+int WINDOW_HEIGHT = 720;
+
+float MOVESPEED = 0.1f; // the movement speed of the observer
+
+mat4 Projection, // for scene projection to viewer
+	 View, // location and nature of observer
+	 Model; // for manipulating position/rotation
+
+vec3 eyePosition = vec3(0, 0, 1); // default eye position (view)
+vec3 targetPosition = vec3(0, 0, 0); // default target (view)
+vec3 up = vec3(0, 1, 0); // default sky direction (view)
+
+vec3 moveModel = vec3(0,0,0); // for moving vertices (model)
+float rotANGLE = 0.02f; // rotation (model)
+float rotation = 0;
+vec3 rotCENTER = targetPosition - eyePosition; // center of rotation
+
+float FOV = 45.0f; // field of view (projection)
+float AR = 16/9; // aspect ratio (projection)
+float NEARclip = 0.0f; // closest object to draw distance (projection)
+float FARclip = 100.0f; // furthest object to draw distance (projection)
 
 vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 
@@ -54,25 +66,7 @@ vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 	return generatedVec3;
 }
 
-void init(){
-	// initialisation logic here
-	cout << "Init has been called" << endl;
-
-	//cout << "Generating nodes..." << endl;
-
-	//Node ListOfNodes [50]; // array of 50 nodes
-	//vec2 xRange = vec2(0, 1);
-	//vec2 yRange = vec2(0, 1);
-	//vec2 zRange = vec2(-1, 0);
-
-	//for (int i = 0; i < 50; i++){ // generate 50 positions
-	//	ListOfNodes[i].setPosition(generateVec3(xRange, yRange, zRange));
-	//	cout << "node generated" << endl;
-	//}
-	//cout << "all nodes generated." << endl;
-
-	// so now we have all the data, we need to use it...
-
+void initialiseModel(){ // sets data and buffers
 	// define a buffer
 	float testData[] = { 0.1f, 0.1f, 0.0f, 0.1f, 0.8f, 0.0f, 0.7f, 0.45f, 0.0f, -0.1f, -0.1f, 0.0f, -0.1f, -0.8f, 0.0f, -0.7f, -0.45f, 0.0f }; // two triangles
 	float thirdTri[] = { -0.1f, 0.1f, 0.0f, -0.1f, 0.8f, 0.0f, -0.7f, 0.45f, 0.0f };
@@ -112,11 +106,23 @@ void init(){
 	glBindBuffer(GL_ARRAY_BUFFER, vbo2); // shows that these arrtibuts apply to the 'vbo' buffer
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
 	cout << "vertex attribute object defined" << endl;
+}
+void initialiseMatrices(){ // set Projection, Model & View
 
-	// decide how to display data in the buffer...
+	//Projection = ortho(-4.0f / 3.0f, 4.0f / 3.0f, -1.0f, 1.0f, 0.0f, 1000.0f);
+	//     orthographic    left         right      top   bot   near  far
+	
+	// only needs setting here and on window dimnension changes
+	Projection = perspective(FOV, AR, NEARclip, FARclip); // set default projection
 
-	// create shaders
-	const char* vShader =
+	vec3 spawnPoint = vec3(0, 0, -1); // spawn position
+	Model = translate(Model, spawnPoint); // setup models
+
+	View = lookAt(eyePosition, targetPosition, up); // set up default camera
+}
+void initialiseShaders(){ // create shaders
+
+	const char* vShader = // pass-through vertex shader
 		"#version 400\n"
 		"in vec3 vPosition;"
 		"void main(){"
@@ -130,7 +136,7 @@ void init(){
 		"	fragColor = vec4(1.0, 1.0, 0.0, 1.0);" // RGBA
 		"}";
 
-	const char* vShader3 =
+	const char* vShader3 = // pass-through 3D vertex shader
 		"#version 400\n"
 		"in vec3 vertexPosition;"
 		"uniform mat4 projection_matrix;" // for perspective, aspect ratio and clipping
@@ -173,36 +179,54 @@ void init(){
 	glAttachShader(shaderProgram, fS); // attach the fragment shader
 	glAttachShader(shaderProgram, vS); // attach the vertex shader
 	glLinkProgram(shaderProgram); // link them together
-	
+
 	shaderProg3d = glCreateProgram(); // shader with 3D capabilities
 	glAttachShader(shaderProg3d, fS3); // fragment shader only handles color
 	glAttachShader(shaderProg3d, vS3); // vertex shader has 3 matrices for manipulation
 	glLinkProgram(shaderProg3d); // link the two into one program
+}
+void init(){
+	// initialisation logic here
+	cout << "Init has been called" << endl;
+	// call relevant initialisations in order
+	initialiseModel();
+	initialiseMatrices();
+	initialiseShaders();
+}
+void reshape(int x, int y){ // called when window is modified
+	WINDOW_WIDTH = x; // get the width and
+	WINDOW_HEIGHT = y; // height of the new window
+
+	//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR
+	Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
+	cout << "FOV: " << FOV << "AR: " << AR << endl;
+}
+
+void updateViewer(){
+	// called observer changes position
+	View = lookAt(eyePosition, targetPosition, up);
+}
+
+void updateGeometry(){ // change the scene
+	// perform any matrix alterations here, geometry modifications should only be
+	// calculated when viewpoint changes or dynamic effects are realised.
 	
+	Model = rotate(Model, rotation, rotCENTER); // update any rotation
+	Model = translate(Model, moveModel); // update any translation
+
 }
 
 void display(){
 	// all display related code in here
 	// like glDrawArrays(...) etc.
-	glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (black)
+	glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (dark navy)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	//cout << "screen cleared" << endl;
 	glUseProgram(shaderProg3d); // using a shader program from init()...
 	//cout << "using shader program" << endl;
 	
-	// perform any matrix alterations here...
-	//Projection = ortho(-4.0f / 3.0f, 4.0f / 3.0f, -1.0f, 1.0f, 0.0f, 1000.0f);
-	//     orthographic    left         right      top   bot   near  far
-	
-	Projection = perspective(FOV, AR, 0.0f, 10.0f);
-
-	Model = rotate(Model, ROTATION, vec3(0.0f, 0.0f, -0.2f)); // rotate then translate for normal effects
-	Model = translate(Model, vec3(0.0f, 0.0f, -5.0f)); // move left, up and back
-	//                mat4         x     y      z
-
-	View = translate(View, vec3(0.0f, 0.0f, 3.0f));
-
+	// set all of the shader matrix variables (the 'uniform' ones)
 	GLuint projLoc = glGetUniformLocation(shaderProg3d, "projection_matrix"); // get the location of the shader variable
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(Projection)); // set it to the relevant matrix above
 
@@ -221,37 +245,37 @@ void display(){
 }
 
 void mouse(int button, int state, int x, int y){ // mouse callback event
-	// button can be 0 (left) or 2 (right), 1 should be the wheel but isn't implemented as standard
-	// state is binary
-	// x is the x coordinate of the mouse
-	// y is the y coordinate of the cursor
 	cout << "button: " << button << ", state: " << state << endl;
 }
 
 void keyboard(unsigned char key, int x, int y){ // keyboard callback event
-	// key is the character the key represents
-	// x is the x coordinate of the mouse at the point the key is pressed
-	// y is the y coordinate of the mouse at the point the key is pressed
-	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;
 
+	cout << "key pressed: " << key << " x = " << x << " y = " << y << endl;
+	rotation = 0; // reset the rotation angle to prevent snowballing
 	if (key == 27){ // escape key to close
 		exit(0);
 	}
+	vec3 movementDirection = normalize(targetPosition - eyePosition);
+
 	if (key == 'w'){
-		FOV += 0.2f;
-		cout << FOV << endl;
+		//eye.z -= 0.02f; // moves eye down the z axis (2rigid5me)
+		eyePosition += eyePosition * (movementDirection * MOVESPEED); // move the eye towards the target
+		targetPosition += targetPosition * (movementDirection * MOVESPEED); // move the target away from the eye
 	}
 	if (key == 's'){
-		FOV -= 0.2f;
-		cout << FOV << endl;
-	}
-	if (key == 'a'){
-		ROTATION -= 0.02f;
-	}
-	if (key == 'd'){
-		ROTATION += 0.02f;
+		eyePosition -= eyePosition * (movementDirection * MOVESPEED); // move the eye away from the target
+		targetPosition -= targetPosition * (movementDirection * MOVESPEED); // move the target towards from the eye
 	}
 
+	if (key == 'a'){
+		rotation -= rotANGLE;
+	}
+	if (key == 'd'){
+		rotation += rotANGLE;
+	}
+
+	updateViewer(); // update the View matrix
+	updateGeometry();
 	glutPostRedisplay();
 }
 
@@ -264,7 +288,7 @@ void idle(){
 	// it is called very quickly! (timer mayb?)
 };
 
-// version 0.1.4 (experimental)
+// version 0.2.0 (experimental)
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv); // initialise the utility toolkit
@@ -273,13 +297,13 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // display will be a single window using RGB
 	cout << "Display Mode set to SINGLE/RGB." << endl;
 
-	glutInitWindowSize(1280, 720); // 720p window size
+	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // 720p window size
 	cout << "Window size set to 1280x720." << endl;
 
 	glutInitWindowPosition(0, 0); // top left
 	cout << "Window Position set to (0,0)." << endl;
 
-	glutCreateWindow("OpenGL Incremental Development v0.1.3"); // name the window
+	glutCreateWindow("OpenGL Incremental Development v0.2.0"); // name the window
 	cout << "Window title set." << endl;
 
 	glewInit(); // initialise the extension wrangler
@@ -292,6 +316,7 @@ int main(int argc, char *argv[])
 	glutKeyboardFunc(keyboard);
 	glutMotionFunc(mousemove);
 	glutIdleFunc(idle);
+	glutReshapeFunc(reshape);
 
 	init(); // custom initialisation code
 	cout << "init() Executed..." << endl;
