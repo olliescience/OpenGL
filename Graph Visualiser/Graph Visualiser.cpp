@@ -5,7 +5,7 @@
 // 1. get vbo and vao working & understood                                | 90%
 // 2. update the display callback to accommodate changes                  | 50%
 // 3. create shaders and get them working                                 | 90%
-// 4. add keyboard controls and camera manipuation                        | 60%
+// 4. add keyboard controls and camera manipuation                        | 70%
 // 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
 
 using namespace std; // make writing system functions easier
@@ -193,14 +193,6 @@ void init(){
 	initialiseMatrices();
 	initialiseShaders();
 }
-void reshape(int x, int y){ // called when window is modified
-	WINDOW_WIDTH = x; // get the width and
-	WINDOW_HEIGHT = y; // height of the new window
-
-	//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR
-	Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
-	cout << "FOV: " << FOV << "AR: " << AR << endl;
-}
 
 void updateViewer(){
 	// called observer changes position
@@ -242,6 +234,15 @@ void display(){
 	//cout << "triangles drawn" << endl;
 
 	glFlush(); // applies given commands to buffer
+}
+
+void reshape(int x, int y){ // called when window is modified
+	WINDOW_WIDTH = x; // get the width and
+	WINDOW_HEIGHT = y; // height of the new window
+
+	//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR
+	Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
+	cout << "FOV: " << FOV << "AR: " << AR << endl;
 }
 
 void mouse(int button, int state, int x, int y){ // mouse callback event
