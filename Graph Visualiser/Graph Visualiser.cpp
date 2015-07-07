@@ -209,6 +209,21 @@ namespace core{
 		View = lookAt(eyePosition, targetPosition, upDirection);
 	}
 
+	void computeMatricesFromInputs(){
+
+		horizontalAngle += rotationSpeed * deltaTime * float(WINDOW_WIDTH / 2 - mouseX);
+		verticalAngle += rotationSpeed * deltaTime * float(WINDOW_HEIGHT / 2 - mouseY);
+
+		// get the direction to look at using the angles above
+		vec3 direction(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
+		// get the (rightmost)perpendicular to the look direction
+		vec3 rightDirection = vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
+
+		targetPosition = eyePosition + direction; // set the new target position for the View matrix
+		upDirection = cross(rightDirection, direction); // recalibrate the 'up' direction for the View matrix
+		updateViewer(); // applies changes to the View matrix
+	}
+
 	void updateGeometry(){ // change the scene
 
 		// perform any matrix alterations here, geometry modifications should only be
@@ -224,6 +239,7 @@ namespace core{
 		glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (dark navy)
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		computeMatricesFromInputs();
 		// timer code
 		deltaTime = 1;
 		int currentTime = glutGet(GLUT_ELAPSED_TIME);/*
@@ -255,26 +271,12 @@ namespace core{
 	void reshape(int x, int y){ // called when window is modified
 		WINDOW_WIDTH = x; // get the width and
 		WINDOW_HEIGHT = y; // height of the new window
-
 		//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR
 		Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
 		cout << "FOV: " << FOV << "AR: " << AR << endl;
 	}
 
-	void computeMatricesFromInputs(){
-
-		horizontalAngle += rotationSpeed * deltaTime * float(WINDOW_WIDTH / 2 - mouseX);
-		verticalAngle += rotationSpeed * deltaTime * float(WINDOW_HEIGHT / 2 - mouseY);
-
-		// get the direction to look at using the angles above
-		vec3 direction(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
-		// get the (rightmost)perpendicular to the look direction
-		vec3 rightDirection = vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
-
-		targetPosition = eyePosition + direction; // set the new target position for the View matrix
-		upDirection = cross(rightDirection, direction); // recalibrate the 'up' direction for the View matrix
-		updateViewer(); // applies changes to the View matrix
-	}
+	
 }
 using namespace core;
 
