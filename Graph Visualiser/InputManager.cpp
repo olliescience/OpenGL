@@ -1,6 +1,10 @@
 // file giving more sophisticated input controls
 #include "stdafx.h"
 #include "Graph Visualiser.h"
+#include "ModelManager.h"
+
+#include "glm/vec3.hpp" // DEBUGGING
+using namespace glm; // DEBUGGING
 
 using namespace core; // use some function from the core
 
@@ -19,6 +23,7 @@ namespace InputManager{
 	// callback function for keystrokes
 	void keyboard(unsigned char key, int x, int y){
 		keyState[key] = PRESSED; // set the state of the relevant key to 1 (see #define)
+		std::cout << key << std::endl;
 	}
 
 	//callback function for key releases
@@ -73,9 +78,49 @@ namespace InputManager{
 		}
 	}
 
+	bool autoView = false; // true if automatic view is enabled
 	void updateControls(){
+
 		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
-			computeMatricesFromInputs();
+			ModelManager::computeMatricesFromInputs();
+			autoView = false; // cancels automatic panning
+		}
+
+		if (keyState['w'] == PRESSED){ // move in the direction the observer is facing
+			ModelManager::moveObserver(ModelManager::targetPosition - ModelManager::eyePosition);
+			autoView = false; // cancels automatic panning
+		}
+		if (keyState['s'] == PRESSED){ // move in the opposite direction to the observer
+			ModelManager::moveObserver(-(ModelManager::targetPosition - ModelManager::eyePosition));
+			autoView = false; // cancels automatic panning
+		}
+		if (keyState['d'] == PRESSED){ // strafe to the right
+			ModelManager::moveObserver(-cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection));
+			autoView = false; // cancels automatic panning
+		}
+		if (keyState['a'] == PRESSED){ // strafe to the left
+			ModelManager::moveObserver(cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection));
+			autoView = false; // cancels automatic panning
+		}
+		if (keyState['q'] == PRESSED){ // debug info key
+			std::cout << "3D Debug Info: " << std::endl;
+			std::cout << "eyePosition: " << ModelManager::eyePosition.x << "x, " << ModelManager::eyePosition.y << "y, " << ModelManager::eyePosition.z << "z." << std::endl;
+			std::cout << "targetPosition: " << ModelManager::targetPosition.x << "x, " << ModelManager::targetPosition.y << "y, " << ModelManager::targetPosition.z << "z." << std::endl;
+			std::cout << "eye-target distance: " << distance(ModelManager::eyePosition, ModelManager::targetPosition) << std::endl;
+		}
+		if (keyState[27] == PRESSED){ // exit on escape key
+			exit(0);
+		}
+		if (keyState[' '] == PRESSED){
+			autoView = true;
+		}
+
+		if (autoView){
+			// strafe right
+			ModelManager::moveObserver(0.1f*(-cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection)));
+			// focus on the middle of the model
+			ModelManager::targetPosition = ModelManager::eyePosition + (ModelManager::autoViewCentre - ModelManager::eyePosition);
+
 		}
 
 	}

@@ -1,6 +1,7 @@
 // Graph Visualiser.cpp : Defines the entry point for the console application.
 #include "stdafx.h"
 #include "InputManager.h"
+#include "ModelManager.h"
 
 // TODO: 
 // 1. get vbo and vao working & understood                                | 90%
@@ -8,132 +9,16 @@
 // 3. create shaders and get them working                                 | 90%
 // 4. add keyboard controls and camera manipulation                       | 80%
 // 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
-// 6. splice the source into separate files for consistency               | 50%
+// 6. splice the source into separate files for consistency               | 80%
 
 using namespace std; // make writing system functions easier
-using namespace glm; // make writing the maths easier
-using namespace InputManager; // holds input callback functions
-
 namespace core{
 	// Global Variables
 	GLuint vao, vbo; // vertex buffer and attribute objects
 	GLuint shaderProgram; // shader programs
+	int deltaTime; // holds the time since last idle call
+	int lastTime; // holds the time before the current idle call
 
-	int WINDOW_WIDTH = 1280;
-	int WINDOW_HEIGHT = 720;
-
-	float MOVESPEED = 0.1f; // the movement speed of the observer
-
-	mat4 Projection, // for scene projection to viewer
-		View, // location and nature of observer
-		Model; // for manipulating position/rotation
-
-	vec3 eyePosition = vec3(0, 0, 1); // default eye position (view)
-	vec3 targetPosition = vec3(0, 0, 0); // default target (view)
-	vec3 upDirection = vec3(0, 1, 0); // default sky direction (view)
-
-	vec3 moveModel = vec3(0, 0, 0); // for moving vertices's (model)
-	float rotANGLE = 0.02f; // rotation (model)
-	float rotation = 0; // initial rotation
-	vec3 rotCENTER = targetPosition - eyePosition; // center of rotation
-
-	float FOV = 45.0f; // field of view (projection)
-	float AR = 16 / 9; // aspect ratio (projection)
-	float NEARclip = 0.0f; // closest object to draw distance (projection)
-	float FARclip = 100.0f; // furthest object to draw distance (projection)
-
-	float horizontalAngle = 3.14f; // angle variables for camera rotation
-	float verticalAngle = 0.0f;
-	float rotationSpeed = 0.00001f; // the maximum speed 
-
-	int deltaTime = 0; // holds the time since last idle call
-	int lastTime = 0; // holds the time before the current idle call
-
-	vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
-
-		vec3 generatedVec3; // the vec3 to be returned
-		// difficult to think around so setting out intuitively
-		float xMin, xMax, xValue, yMin, yMax, yValue, zMin, zMax, zValue;
-		// get the min/max for each dimension
-		xMin = xRange.x;	xMax = xRange.y;
-		yMin = yRange.x;	yMax = yRange.y;
-		zMin = zRange.x;	zMax = zRange.y;
-
-		float randFloat = (float)rand() / (RAND_MAX + 1); // generate value between 0.0 and 1.0
-		xValue = (randFloat * (xMax - xMin)) + xMin; // multiply and add to get within range
-		randFloat = (float)rand() / (RAND_MAX + 1); // get new value
-		yValue = (randFloat * (yMax - yMin)) + yMin; // continue...
-		randFloat = (float)rand() / (RAND_MAX + 1);
-		zValue = (randFloat * (zMax - zMin)) + zMin;
-
-		/* debugging console output*/
-		cout << "Generated vector:" << endl;
-		cout << "xValue: " << xValue << endl;
-		cout << "yValue: " << yValue << endl;
-		cout << "zValue: " << zValue << endl;
-
-
-		generatedVec3 = vec3(xValue, yValue, zValue);
-		return generatedVec3;
-	}
-
-	void initialiseModel(){ // sets data and buffers
-
-		// generate a sea of points...
-		float points[150]; // creates  place to hold 150 floats (50 coordinates)
-		for (int n = 0; n < 50; n++){
-			vec3 newPoint = generateVec3(vec2(-10, 10), vec2(-5, 5), vec2(-15, 0));
-			points[n] = newPoint.x;
-			points[n + 1] = newPoint.y;
-			points[n + 2] = newPoint.z;
-
-			n += 2;
-		}
-
-
-		//float testData[] = { 0.1f, 0.1f, 0.0f, 0.1f, 0.8f, 0.0f, 0.7f, 0.45f, 0.0f, -0.1f, -0.1f, 0.0f, -0.1f, -0.8f, 0.0f, -0.7f, -0.45f, 0.0f }; // two triangles
-		//float thirdTri[] = { -0.1f, 0.1f, 0.0f, -0.1f, 0.8f, 0.0f, -0.7f, 0.45f, 0.0f };
-
-		//float allTriangles[27]; // an array to hold all triangles
-
-		//// add all the triangles into one array
-		//for (int i = 0; i < 27; i++){
-		//	if (i < 18){
-		//		allTriangles[i] = testData[i];
-		//	}
-		//	if (i >= 18){
-		//		allTriangles[i] = thirdTri[i - 18];
-		//	}
-		//}
-
-		//Vertex buffer object defines where the vertices will be stored (GPU)
-		int sizeOfAll = 150 * sizeof(float);
-		glGenBuffers(1, &vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeOfAll, points, GL_STATIC_DRAW);
-
-
-		// Vertex attribute object defines where the attributes for each vertex are stored and
-		//how they should be interpreted by the GPU 
-		glGenBuffers(1, &vao); // generate a unique value for the attrib
-		glBindVertexArray(vao); // binds the vertex attribute array
-		glEnableVertexAttribArray(0); // ?
-		glBindBuffer(GL_ARRAY_BUFFER, vbo); // shows that these attributes apply to the 'vbo' buffer
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
-	}
-	void initialiseMatrices(){ // set Projection, Model & View
-
-		//Projection = ortho(-4.0f / 3.0f, 4.0f / 3.0f, -1.0f, 1.0f, 0.0f, 1000.0f);
-		//     orthographic    left         right      top   bot   near  far
-
-		// only needs setting here and on window dimension changes
-		Projection = perspective(FOV, AR, NEARclip, FARclip); // set default projection
-
-		vec3 spawnPoint = vec3(0, 0, -1); // spawn position
-		Model = translate(Model, spawnPoint); // setup models
-
-		View = lookAt(eyePosition, targetPosition, upDirection); // set up default camera
-	}
 	void initialiseShaders(){ // create shaders
 
 		const char* vShader = // pass-through vertex shader
@@ -199,39 +84,11 @@ namespace core{
 		// initialization logic here
 		cout << "Program started..." << endl;
 		// call relevant initializations in order
-		initialiseModel();
-		initialiseMatrices();
+		ModelManager::setModelVariables(); // set all the variables to make model modification work
+		ModelManager::initialiseModel();
+		ModelManager::initialiseMatrices();
 		initialiseShaders();
-		resetInputs();
-	}
-
-	void updateViewer(){
-		// called when observer changes position or orientation
-		View = lookAt(eyePosition, targetPosition, upDirection);
-	}
-
-	void computeMatricesFromInputs(){
-
-		horizontalAngle += rotationSpeed * deltaTime * float(WINDOW_WIDTH / 2 - mouseX);
-		verticalAngle += rotationSpeed * deltaTime * float(WINDOW_HEIGHT / 2 - mouseY);
-
-		// get the direction to look at using the angles above
-		vec3 direction(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
-		// get the (rightmost)perpendicular to the look direction
-		vec3 rightDirection = vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
-
-		targetPosition = eyePosition + direction; // set the new target position for the View matrix
-		upDirection = cross(rightDirection, direction); // recalibrate the 'up' direction for the View matrix
-		updateViewer(); // applies changes to the View matrix
-	}
-
-	void updateGeometry(){ // change the scene
-
-		// perform any matrix alterations here, geometry modifications should only be
-		// calculated when viewpoint changes or dynamic effects are realized.
-		Model = rotate(Model, rotation, rotCENTER); // update any rotation
-		Model = translate(Model, moveModel); // update any translation
-
+		InputManager::resetInputs();
 	}
 
 	void display(){
@@ -239,8 +96,8 @@ namespace core{
 		// like glDrawArrays(...) etc.
 		glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (dark navy)
 		glClear(GL_COLOR_BUFFER_BIT);
-		
-		updateControls();
+
+		InputManager::updateControls();
 		// timer code
 		deltaTime = 1;
 		int currentTime = glutGet(GLUT_ELAPSED_TIME);/*
@@ -253,41 +110,34 @@ namespace core{
 
 		// set all of the shader matrix variables (the 'uniform' ones)
 		GLuint projLoc = glGetUniformLocation(shaderProgram, "projection_matrix"); // get the location of the shader variable
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(Projection)); // set it to the relevant matrix above
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(ModelManager::Projection)); // set it to the relevant matrix above
 
 		GLuint viewLoc = glGetUniformLocation(shaderProgram, "view_matrix"); // same for the view matrix
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(View)); // set it here
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(ModelManager::View)); // set it here
 
 		GLuint modelLoc = glGetUniformLocation(shaderProgram, "model_matrix"); // same for the model matrix
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(Model)); // set it here
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(ModelManager::Model)); // set it here
 
 		glBindVertexArray(vao);
 		//cout << "vao bound" << endl;
-		glDrawArrays(GL_LINE_LOOP, 0, 150); // draw the points in the currently bound vao with current shader
+		glPointSize(10.0f); // sets the diameter of the points
+		glEnable(GL_POINT_SMOOTH); // makes the points round (if used)
+
+		glDrawArrays(GL_POINTS, 0, 150); // draw the points in the currently bound vao with current shader
 		//cout << "triangles drawn" << endl;
 
 		glFlush(); // applies given commands to buffer
-	}
 
-	void reshape(int x, int y){ // called when window is modified
-		WINDOW_WIDTH = x; // get the width and
-		WINDOW_HEIGHT = y; // height of the new window
-		//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR
-		Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
-		cout << "FOV: " << FOV << "AR: " << AR << endl;
 	}
-
-	
 }
 using namespace core;
-
 // version 0.3.0 (experimental)
 int main(int argc, char *argv[])
 	{
 		glutInit(&argc, argv); // initialize the utility toolkit
 
 		glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // display will be a single window using RGB	
-		glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // 720p window size
+		glutInitWindowSize(ModelManager::WINDOW_WIDTH, ModelManager::WINDOW_HEIGHT); // 720p window size
 		glutInitWindowPosition(0, 0); // top left
 
 		glutCreateWindow("OpenGL Incremental Development v0.3.0"); // name the window
@@ -295,14 +145,14 @@ int main(int argc, char *argv[])
 
 		glutDisplayFunc(display); // define the callback function for the display
 
-		glutMouseFunc(mouse);
-		glutKeyboardFunc(keyboard);
-		glutKeyboardUpFunc(keyboardUp);
-		glutMotionFunc(mousemove);
-		glutPassiveMotionFunc(mousepassive);
+		glutMouseFunc(InputManager::mouse);
+		glutKeyboardFunc(InputManager::keyboard);
+		glutKeyboardUpFunc(InputManager::keyboardUp);
+		glutMotionFunc(InputManager::mousemove);
+		glutPassiveMotionFunc(InputManager::mousepassive);
 
 		glutIdleFunc(display); // redraws the display whenever possible
-		glutReshapeFunc(reshape);
+		glutReshapeFunc(ModelManager::reshape);
 		init(); // custom initialization code
 		glutMainLoop(); // the main look of the program
 
