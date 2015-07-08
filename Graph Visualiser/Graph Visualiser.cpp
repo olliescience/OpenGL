@@ -202,6 +202,7 @@ namespace core{
 		initialiseModel();
 		initialiseMatrices();
 		initialiseShaders();
+		resetInputs();
 	}
 
 	void updateViewer(){
@@ -238,8 +239,8 @@ namespace core{
 		// like glDrawArrays(...) etc.
 		glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (dark navy)
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		computeMatricesFromInputs();
+		
+		updateControls();
 		// timer code
 		deltaTime = 1;
 		int currentTime = glutGet(GLUT_ELAPSED_TIME);/*

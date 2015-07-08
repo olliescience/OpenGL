@@ -9,4 +9,6 @@ namespace InputManager{
 	extern void mouse(int button, int state, int x, int y);
 	extern void mousemove(int x, int y);
 	extern void mousepassive(int x, int y);
+	extern void resetInputs();
+	extern void updateControls();
 }

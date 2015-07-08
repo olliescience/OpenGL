@@ -47,7 +47,6 @@ namespace InputManager{
 			mouseState[GLUT_SCROLL_DOWN] = state;
 			break;
 		}
-		std::cout << "button: " << button << " state: " << state << std::endl;
 	}
 
 	// callback for mouse click and drag (any button)
@@ -55,9 +54,6 @@ namespace InputManager{
 		mouseX = x; // set the coordinates of the mouse any time it is moved
 		mouseY = y; // for maximum responsiveness (might be a little inefficient)
 		inDrag = true;
-		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
-			computeMatricesFromInputs();
-		}
 	}
 
 	// callback for any time the mouse if moved
@@ -65,6 +61,23 @@ namespace InputManager{
 		inDrag = false;
 		mouseX = x; // set the coordinates of the mouse any time it is moved
 		mouseY = y; // for maximum responsiveness (might be a little inefficient)
+	}
+
+	void resetInputs(){
+		inDrag = false;
+		for (int c = 0; c < 255; c++){
+			keyState[c] = RELEASED;
+		}
+		for (int n = 0; n < 5; n++){
+			mouseState[n] = RELEASED;
+		}
+	}
+
+	void updateControls(){
+		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
+			computeMatricesFromInputs();
+		}
+
 	}
 	
 }
