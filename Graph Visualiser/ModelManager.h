@@ -34,7 +34,7 @@ namespace ModelManager{
 
 	extern void setModelVariables();
 	extern void updateViewer();
-	extern void computeMatricesFromInputs();
+	extern void rotateMouse();
 	extern void updateGeometry();
 	extern void reshape(int x, int y);
 	extern void initialiseModel();

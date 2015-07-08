@@ -43,8 +43,8 @@ namespace ModelManager{
 		WINDOW_HEIGHT = 720;
 		MOVESPEED = 0.01f;
 
-		eyePosition = vec3(0, 0, 1);
-		targetPosition = vec3(0, 0, 0);
+		eyePosition = vec3(0, 0, 15);
+		targetPosition = vec3(0, 0, 14);
 		upDirection = vec3(0, 1, 0);
 
 		autoViewCentre = vec3(0,0,-7.5);
@@ -61,7 +61,7 @@ namespace ModelManager{
 
 		horizontalAngle = 3.14f;
 		verticalAngle = 0.0f;
-		rotationSpeed = 0.00001f;
+		rotationSpeed = 0.000001f;
 		core::deltaTime = 1;
 	}
 
@@ -69,19 +69,21 @@ namespace ModelManager{
 		// called when observer changes position or orientation
 		View = lookAt(eyePosition, targetPosition, upDirection);
 	}
-	void computeMatricesFromInputs(){
+	void rotateMouse(){
 
 		horizontalAngle += rotationSpeed * core::deltaTime * float(WINDOW_WIDTH / 2 - InputManager::mouseX);
 		verticalAngle += rotationSpeed * core::deltaTime * float(WINDOW_HEIGHT / 2 - InputManager::mouseY);
 
 		// get the direction to look at using the angles above
-		vec3 direction(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
+		vec3 direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
 		// get the (rightmost)perpendicular to the look direction
-		vec3 rightDirection = vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
+		vec3 rightDirection = normalize(vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f)));
 
 		targetPosition = eyePosition + direction; // set the new target position for the View matrix
 		upDirection = cross(rightDirection, direction); // recalibrate the 'up' direction for the View matrix
 		updateViewer(); // applies changes to the View matrix
+
+		std::cout << "hA in rotateMouse(): " << horizontalAngle << std::endl;
 	}
 	void updateGeometry(){ // change the scene
 
@@ -185,7 +187,7 @@ namespace ModelManager{
 		View = lookAt(eyePosition, targetPosition, upDirection); // set up default camera
 	}
 	void moveObserver(vec3 direction){
-		
+
 		eyePosition += direction * MOVESPEED;
 		targetPosition += direction * MOVESPEED;
 

@@ -79,14 +79,14 @@ namespace InputManager{
 	}
 
 	bool autoView = false; // true if automatic view is enabled
+	bool isFullscreen = false;
 	void updateControls(){
 
 		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
-			ModelManager::computeMatricesFromInputs();
+			ModelManager::rotateMouse();
 			autoView = false; // cancels automatic panning
 		}
-
-		if (keyState['w'] == PRESSED){ // move in the direction the observer is facing
+		if (keyState['w'] == PRESSED || mouseState[GLUT_SCROLL_UP] == PRESSED){ // move in the direction the observer is facing
 			ModelManager::moveObserver(ModelManager::targetPosition - ModelManager::eyePosition);
 			autoView = false; // cancels automatic panning
 		}
@@ -111,16 +111,30 @@ namespace InputManager{
 		if (keyState[27] == PRESSED){ // exit on escape key
 			exit(0);
 		}
+		if (keyState['f'] == PRESSED){
+			if (isFullscreen)
+				isFullscreen = false;
+			else
+				isFullscreen = true;
+		}
 		if (keyState[' '] == PRESSED){
 			autoView = true;
 		}
-
+		if (isFullscreen){
+			glutFullScreen();
+		}
 		if (autoView){
-			// strafe right
-			ModelManager::moveObserver(0.1f*(-cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection)));
 			// focus on the middle of the model
-			ModelManager::targetPosition = ModelManager::eyePosition + (ModelManager::autoViewCentre - ModelManager::eyePosition);
+			ModelManager::targetPosition = ModelManager::eyePosition + (normalize(ModelManager::autoViewCentre - ModelManager::eyePosition));
+			// strafe right
+			float autoViewRotationSpeed = 0.1f;
+			ModelManager::moveObserver(autoViewRotationSpeed * (-cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection)));
+			
+			float opposite = ModelManager::eyePosition.x - ModelManager::autoViewCentre.x;
+			float hypotenuse = ModelManager::eyePosition.z - ModelManager::autoViewCentre.z;
 
+			std::cout << "horizontalAngle: " << ModelManager::horizontalAngle << std::endl;
+			//ModelManager::horizontalAngle = 3.14 - atanh(opposite/hypotenuse);
 		}
 
 	}
