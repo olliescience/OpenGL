@@ -3,9 +3,6 @@
 #include "Graph Visualiser.h"
 #include "ModelManager.h"
 
-#include "glm/vec3.hpp" // DEBUGGING
-using namespace glm; // DEBUGGING
-
 using namespace core; // use some function from the core
 
 namespace InputManager{
@@ -66,8 +63,9 @@ namespace InputManager{
 		mouseX = x; // set the coordinates of the mouse any time it is moved
 		mouseY = y; // for maximum responsiveness (might be a little inefficient)
 	}
-
-	void resetInputs(){ // sets all inputs to 'RELEASED'
+	
+	// sets all inputs to 'RELEASED'
+	void resetInputs(){
 		inDrag = false;
 		for (int c = 0; c < 255; c++){
 			keyState[c] = RELEASED;
@@ -79,11 +77,10 @@ namespace InputManager{
 
 	bool autoView = false; // true if automatic view is enabled
 	bool isFullscreen = true; // fullscreen by default
-	unsigned char oldkeyState[255]; // array holding the states of all keys
-	unsigned char oldmouseState[5]; // holds the state of the mouse
 	void updateControls(){
 		// MOUSE CHECKS
 		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
+			
 			ModelManager::mouseRotate(); // rotate camera using mouse input
 			autoView = false; // cancels automatic panning
 		}
@@ -115,7 +112,7 @@ namespace InputManager{
 		if (keyState['f'] == PRESSED){ // fullscreen toggle (bugged)
 			glutFullScreenToggle();
 		}
-		if (keyState['e'] == PRESSED){ // autoview key
+		if (keyState['e'] == PRESSED){ // auto-view key
 			autoView = true;
 		}
 
@@ -123,12 +120,12 @@ namespace InputManager{
 		if (autoView){
 			// mimic mouse click
 			mouseY = ModelManager::WINDOW_HEIGHT / 2;
-			mouseX = ModelManager::WINDOW_WIDTH / 2 - 50; // distance to the left from the centre (defines look rotation speed)
+			mouseX = ModelManager::WINDOW_WIDTH / 2 - 90; // distance to the left from the centre (defines look rotation speed)
 			ModelManager::mouseRotate();
 
 			// strafe right
 			float autoViewRotationSpeed = 0.1f;
-			vec3 rotationDirection = -cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection);
+			glm::vec3 rotationDirection = -cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection);
 			ModelManager::moveObserver(autoViewRotationSpeed * rotationDirection);
 			
 		}

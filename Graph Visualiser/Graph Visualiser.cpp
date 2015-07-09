@@ -14,7 +14,7 @@
 using namespace std; // make writing system functions easier
 namespace core{
 	// Global Variables
-	GLuint vao, vbo; // vertex buffer and attribute objects
+	GLuint vao, vbo, lineAttributeBuffer, lineVertexBuffer; // vertex buffer and attribute objects
 	GLuint shaderProgram; // shader programs
 	int deltaTime; // holds the time since last idle call
 	int lastTime; // holds the time before the current idle call
@@ -50,7 +50,7 @@ namespace core{
 			"#version 400\n"
 			"out vec4 fragColor;"
 			"void main(){"
-			"	fragColor = vec4(1.0, 0.0, 0.0, 1.0);" // RGBA
+			"	fragColor = vec4(0.5, 1.0, 0.5, 1.0);" // RGBA
 			"}";
 
 		// compile shaders
@@ -98,11 +98,12 @@ namespace core{
 		glClear(GL_COLOR_BUFFER_BIT); // apply the clear with the given color
 
 		InputManager::updateControls(); // update all inputs 
+
 		// timer code (bugged)
 		deltaTime = 1;
-		int currentTime = glutGet(GLUT_ELAPSED_TIME);/*
-		deltaTime = currentTime - lastTime;
-		lastTime = currentTime;*/
+		//int currentTime = glutGet(GLUT_ELAPSED_TIME);
+		//deltaTime = currentTime - lastTime;
+		//lastTime = currentTime;
 
 		//cout << "screen cleared" << endl;
 		glUseProgram(shaderProgram); // using a shader program from init()...
@@ -122,9 +123,10 @@ namespace core{
 
 		glPointSize(10.0f); // sets the diameter of the points
 		glEnable(GL_POINT_SMOOTH); // makes the points round (if used)
+		
+		glDrawArrays(GL_POINTS, 0, 40); // draw the points in the currently bound vao with current shader
 
-		glDrawArrays(GL_POINTS, 0, 150); // draw the points in the currently bound vao with current shader
-		//cout << "triangles drawn" << endl;
+		glDrawArrays(GL_LINES, 40, 10); // draw lines using points starting at [40], 5 lines
 
 		glFlush(); // applies given commands to buffer
 

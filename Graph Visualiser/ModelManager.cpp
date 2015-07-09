@@ -22,7 +22,7 @@ namespace ModelManager{
 	vec3 targetPosition; // default target (view)
 	vec3 upDirection; // default sky direction (view)
 
-	vec3 autoViewCentre; // centre of the model for the autoview feature
+	vec3 autoViewCentre; // centre of the model for the auto-view feature
 
 	vec3 moveModel; // for moving vertices's (model)
 	float rotANGLE; // rotation (model)
@@ -41,7 +41,7 @@ namespace ModelManager{
 	void setModelVariables(){
 		WINDOW_WIDTH = 1280;
 		WINDOW_HEIGHT = 720;
-		MOVESPEED = 0.01f;
+		MOVESPEED = 0.001f;
 
 		eyePosition = vec3(0, 0, 15);
 		targetPosition = vec3(0, 0, 14);
@@ -61,7 +61,7 @@ namespace ModelManager{
 
 		horizontalAngle = 3.14f;
 		verticalAngle = 0.0f;
-		rotationSpeed = 0.000001f;
+		rotationSpeed = 0.0000001f;
 		core::deltaTime = 1;
 	}
 
@@ -74,6 +74,11 @@ namespace ModelManager{
 		horizontalAngle += rotationSpeed * core::deltaTime * float(WINDOW_WIDTH / 2 - InputManager::mouseX);
 		verticalAngle += rotationSpeed * core::deltaTime * float(WINDOW_HEIGHT / 2 - InputManager::mouseY);
 
+		if (verticalAngle > 3.14 / 2)
+			verticalAngle = 3.14 / 2; // stop looking up more than 90d
+		if (verticalAngle < -3.14 / 2)
+			verticalAngle = -3.14 / 2; // stop looking down more than 90d
+
 		// get the direction to look at using the angles above
 		vec3 direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
 		// get the (rightmost) perpendicular to the look direction
@@ -81,6 +86,9 @@ namespace ModelManager{
 
 		targetPosition = eyePosition + direction; // set the new target position for the View matrix
 		upDirection = cross(rightDirection, direction); // recalibrate the 'up' direction for the View matrix
+		
+
+
 		updateViewer(); // applies changes to the View matrix
 
 	}
@@ -121,16 +129,16 @@ namespace ModelManager{
 		cout << "xValue: " << xValue << endl;
 		cout << "yValue: " << yValue << endl;
 		cout << "zValue: " << zValue << endl;*/
-
-
+		
 		generatedVec3 = vec3(xValue, yValue, zValue);
 		return generatedVec3;
 	}	
 	void initialiseModel(){ // sets data and buffers
 
 		// generate a sea of points...
-		float points[150]; // creates  place to hold 150 floats (50 coordinates)
-		for (int n = 0; n < 150; n++){
+		const int dataLength = 150;
+		float points[dataLength]; // creates  place to hold 150 floats (50 coordinates)
+		for (int n = 0; n < dataLength; n++){
 			vec3 newPoint = generateVec3(vec2(-10, 10), vec2(-5, 5), vec2(-15, 0));
 			points[n] = newPoint.x;
 			points[n + 1] = newPoint.y;
@@ -139,29 +147,34 @@ namespace ModelManager{
 			n += 2;
 		}
 
+		// generate links between points (two vec3's per line)
+		const int ldataLength = 6;
+		float lines[ldataLength]; // create array to hold the values
+		lines[0] = 0;
+		lines[1] = 0;
+		lines[2] = 0; // first point (0,0,0)
+		lines[3] = 9;
+		lines[4] = 5;
+		lines[5] = -15; // second point (9,5,-15)
+		
+		//// creates vertex buffer to hold lines
+		//int sizeofLines = ldataLength *sizeof(float);
+		//glGenBuffers(1, &lineVertexBuffer);
+		//glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
+		//glBufferData(GL_ARRAY_BUFFER, sizeofLines, lines, GL_STATIC_DRAW);
 
-		//float testData[] = { 0.1f, 0.1f, 0.0f, 0.1f, 0.8f, 0.0f, 0.7f, 0.45f, 0.0f, -0.1f, -0.1f, 0.0f, -0.1f, -0.8f, 0.0f, -0.7f, -0.45f, 0.0f }; // two triangles
-		//float thirdTri[] = { -0.1f, 0.1f, 0.0f, -0.1f, 0.8f, 0.0f, -0.7f, 0.45f, 0.0f };
-
-		//float allTriangles[27]; // an array to hold all triangles
-
-		//// add all the triangles into one array
-		//for (int i = 0; i < 27; i++){
-		//	if (i < 18){
-		//		allTriangles[i] = testData[i];
-		//	}
-		//	if (i >= 18){
-		//		allTriangles[i] = thirdTri[i - 18];
-		//	}
-		//}
-
+		//glGenBuffers(1, &lineAttributeBuffer); // generate a unique value for the attrib
+		//glBindVertexArray(lineAttributeBuffer); // binds the vertex attribute array
+		//glEnableVertexAttribArray(0); // ?
+		//glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer); // shows that these attributes apply to the 'vbo' buffer
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
+		
 		//Vertex buffer object defines where the vertices will be stored (GPU)
-		int sizeOfAll = 150 * sizeof(float);
+		int sizeOfAll = dataLength * sizeof(float);
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeOfAll, points, GL_STATIC_DRAW);
-
-
+		
 		// Vertex attribute object defines where the attributes for each vertex are stored and
 		//how they should be interpreted by the GPU 
 		glGenBuffers(1, &vao); // generate a unique value for the attrib
@@ -178,8 +191,8 @@ namespace ModelManager{
 		// only needs setting here and on window dimension changes
 		Projection = perspective(FOV, AR, NEARclip, FARclip); // set default projection
 
-		vec3 spawnPoint = vec3(0, 0, -1); // spawn position
-		Model = translate(Model, spawnPoint); // setup models
+		//vec3 spawnPoint = vec3(0, 0, 0); // spawn position
+		//Model = translate(Model, spawnPoint); // setup models
 
 		View = lookAt(eyePosition, targetPosition, upDirection); // set up default camera
 	}
