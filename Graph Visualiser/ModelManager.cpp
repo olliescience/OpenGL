@@ -15,8 +15,8 @@ namespace ModelManager{
 	float MOVESPEED; // the movement speed of the observer
 
 	mat4 Projection, // for scene projection to viewer
-		View, // location and nature of observer
-		Model; // for manipulating position/rotation
+		 View, // location and nature of observer
+		 Model; // for manipulating position/rotation
 
 	vec3 eyePosition; // default eye position (view)
 	vec3 targetPosition; // default target (view)
@@ -76,7 +76,7 @@ namespace ModelManager{
 
 		// get the direction to look at using the angles above
 		vec3 direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
-		// get the (rightmost)perpendicular to the look direction
+		// get the (rightmost) perpendicular to the look direction
 		vec3 rightDirection = normalize(vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f)));
 
 		targetPosition = eyePosition + direction; // set the new target position for the View matrix
@@ -93,13 +93,11 @@ namespace ModelManager{
 
 	}
 	void reshape(int x, int y){ // called when window is modified
-		WINDOW_WIDTH = x; // get the width and
+		WINDOW_WIDTH = x; // get the width and...
 		WINDOW_HEIGHT = y; // height of the new window
-		//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR
+		//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR (not particularly useful)
 		Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
 		glViewport(0, 0, x, y);
-
-		cout << "FOV: " << FOV << "AR: " << AR << endl;
 	}
 	vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 
@@ -119,10 +117,10 @@ namespace ModelManager{
 		zValue = (randFloat * (zMax - zMin)) + zMin;
 
 		/* debugging console output*/
-		cout << "Generated vector:" << endl;
+		/*cout << "Generated vector:" << endl;
 		cout << "xValue: " << xValue << endl;
 		cout << "yValue: " << yValue << endl;
-		cout << "zValue: " << zValue << endl;
+		cout << "zValue: " << zValue << endl;*/
 
 
 		generatedVec3 = vec3(xValue, yValue, zValue);
@@ -186,7 +184,7 @@ namespace ModelManager{
 		View = lookAt(eyePosition, targetPosition, upDirection); // set up default camera
 	}
 	void moveObserver(vec3 direction){
-
+		// pretty standard - move the eye and the target together
 		eyePosition += direction * MOVESPEED;
 		targetPosition += direction * MOVESPEED;
 

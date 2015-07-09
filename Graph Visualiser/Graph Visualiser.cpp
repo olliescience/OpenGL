@@ -50,7 +50,7 @@ namespace core{
 			"#version 400\n"
 			"out vec4 fragColor;"
 			"void main(){"
-			"	fragColor = vec4(0.5, 1.0, 0.5, 1.0);" // RGBA
+			"	fragColor = vec4(1.0, 0.0, 0.0, 1.0);" // RGBA
 			"}";
 
 		// compile shaders
@@ -95,10 +95,10 @@ namespace core{
 		// all display related code in here
 		// like glDrawArrays(...) etc.
 		glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (dark navy)
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT); // apply the clear with the given color
 
-		InputManager::updateControls();
-		// timer code
+		InputManager::updateControls(); // update all inputs 
+		// timer code (bugged)
 		deltaTime = 1;
 		int currentTime = glutGet(GLUT_ELAPSED_TIME);/*
 		deltaTime = currentTime - lastTime;
@@ -119,7 +119,7 @@ namespace core{
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(ModelManager::Model)); // set it here
 
 		glBindVertexArray(vao);
-		//cout << "vao bound" << endl;
+
 		glPointSize(10.0f); // sets the diameter of the points
 		glEnable(GL_POINT_SMOOTH); // makes the points round (if used)
 
@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
 		glewInit(); // initialize the extension wrangler
 
 		glutDisplayFunc(display); // define the callback function for the display
+		glutFullScreen(); // go fullscreen as default
 
 		glutMouseFunc(InputManager::mouse);
 		glutKeyboardFunc(InputManager::keyboard);

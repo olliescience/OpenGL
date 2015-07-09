@@ -3,7 +3,6 @@
 #include "Graph Visualiser.h"
 #include "ModelManager.h"
 
-#include "glm/gtx/vector_angle.hpp"
 #include "glm/vec3.hpp" // DEBUGGING
 using namespace glm; // DEBUGGING
 
@@ -24,10 +23,9 @@ namespace InputManager{
 	// callback function for keystrokes
 	void keyboard(unsigned char key, int x, int y){
 		keyState[key] = PRESSED; // set the state of the relevant key to 1 (see #define)
-		std::cout << key << std::endl;
 	}
 
-	//callback function for key releases
+	// callback function for key releases
 	void keyboardUp(unsigned char key, int x, int y){
 		keyState[key] = RELEASED; // opposes the keystroke function
 	}
@@ -69,7 +67,7 @@ namespace InputManager{
 		mouseY = y; // for maximum responsiveness (might be a little inefficient)
 	}
 
-	void resetInputs(){
+	void resetInputs(){ // sets all inputs to 'RELEASED'
 		inDrag = false;
 		for (int c = 0; c < 255; c++){
 			keyState[c] = RELEASED;
@@ -80,24 +78,22 @@ namespace InputManager{
 	}
 
 	bool autoView = false; // true if automatic view is enabled
-	bool isFullscreen = false;
-	bool debugInfo = false;
+	bool isFullscreen = true; // fullscreen by default
 	unsigned char oldkeyState[255]; // array holding the states of all keys
 	unsigned char oldmouseState[5]; // holds the state of the mouse
 	void updateControls(){
-
+		// MOUSE CHECKS
 		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
-			ModelManager::mouseRotate();
+			ModelManager::mouseRotate(); // rotate camera using mouse input
 			autoView = false; // cancels automatic panning
-			std::cout << mouseX << "  " << mouseY << std::endl;
 		}
+
+		// KEY CHECKS - if statements, ugly but most efficient given input structure
 		if (keyState['w'] == PRESSED || mouseState[GLUT_SCROLL_UP] == PRESSED){ // move in the direction the observer is facing
 			ModelManager::moveObserver(ModelManager::targetPosition - ModelManager::eyePosition);
-			autoView = false; // cancels automatic panning
 		}
 		if (keyState['s'] == PRESSED){ // move in the opposite direction to the observer
 			ModelManager::moveObserver(-(ModelManager::targetPosition - ModelManager::eyePosition));
-			autoView = false; // cancels automatic panning
 		}
 		if (keyState['d'] == PRESSED){ // strafe to the right
 			ModelManager::moveObserver(-cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection));
@@ -107,30 +103,27 @@ namespace InputManager{
 			ModelManager::moveObserver(cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection));
 			autoView = false; // cancels automatic panning
 		}
-		if (keyState['q'] == PRESSED){ // debug info key
-			debugInfo = true;
+		if (keyState['t'] == PRESSED){ // vertical up pan
+			ModelManager::moveObserver(ModelManager::upDirection);
+		}
+		if (keyState['g'] == PRESSED){ // vertical down pan
+			ModelManager::moveObserver(-ModelManager::upDirection);
 		}
 		if (keyState[27] == PRESSED){ // exit on escape key
 			exit(0);
 		}
-		if (keyState['f'] == PRESSED){
+		if (keyState['f'] == PRESSED){ // fullscreen toggle (bugged)
 			glutFullScreenToggle();
 		}
-		if (keyState[' '] == PRESSED){
+		if (keyState['e'] == PRESSED){ // autoview key
 			autoView = true;
 		}
 
-		if (debugInfo){
-			std::cout << "3D Debug Info: " << std::endl;
-			std::cout << "eyePosition: " << ModelManager::eyePosition.x << "x, " << ModelManager::eyePosition.y << "y, " << ModelManager::eyePosition.z << "z." << std::endl;
-			std::cout << "targetPosition: " << ModelManager::targetPosition.x << "x, " << ModelManager::targetPosition.y << "y, " << ModelManager::targetPosition.z << "z." << std::endl;
-			std::cout << "eye-target distance: " << distance(ModelManager::eyePosition, ModelManager::targetPosition) << std::endl;
-			debugInfo = false;
-		}
+		// BOOLEAN CHECKS -- NO KEY/MOUSE CHECKS PAST THIS LINE
 		if (autoView){
 			// mimic mouse click
 			mouseY = ModelManager::WINDOW_HEIGHT / 2;
-			mouseX = ModelManager::WINDOW_WIDTH / 2 - 50; // distance to the left of the centre (defines look rotation speed)
+			mouseX = ModelManager::WINDOW_WIDTH / 2 - 50; // distance to the left from the centre (defines look rotation speed)
 			ModelManager::mouseRotate();
 
 			// strafe right
