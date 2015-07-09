@@ -3,6 +3,7 @@
 #include "Graph Visualiser.h"
 #include "ModelManager.h"
 
+#include "glm/gtx/vector_angle.hpp"
 #include "glm/vec3.hpp" // DEBUGGING
 using namespace glm; // DEBUGGING
 
@@ -80,11 +81,15 @@ namespace InputManager{
 
 	bool autoView = false; // true if automatic view is enabled
 	bool isFullscreen = false;
+	bool debugInfo = false;
+	unsigned char oldkeyState[255]; // array holding the states of all keys
+	unsigned char oldmouseState[5]; // holds the state of the mouse
 	void updateControls(){
 
 		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
-			ModelManager::rotateMouse();
+			ModelManager::mouseRotate();
 			autoView = false; // cancels automatic panning
+			std::cout << mouseX << "  " << mouseY << std::endl;
 		}
 		if (keyState['w'] == PRESSED || mouseState[GLUT_SCROLL_UP] == PRESSED){ // move in the direction the observer is facing
 			ModelManager::moveObserver(ModelManager::targetPosition - ModelManager::eyePosition);
@@ -103,40 +108,36 @@ namespace InputManager{
 			autoView = false; // cancels automatic panning
 		}
 		if (keyState['q'] == PRESSED){ // debug info key
-			std::cout << "3D Debug Info: " << std::endl;
-			std::cout << "eyePosition: " << ModelManager::eyePosition.x << "x, " << ModelManager::eyePosition.y << "y, " << ModelManager::eyePosition.z << "z." << std::endl;
-			std::cout << "targetPosition: " << ModelManager::targetPosition.x << "x, " << ModelManager::targetPosition.y << "y, " << ModelManager::targetPosition.z << "z." << std::endl;
-			std::cout << "eye-target distance: " << distance(ModelManager::eyePosition, ModelManager::targetPosition) << std::endl;
+			debugInfo = true;
 		}
 		if (keyState[27] == PRESSED){ // exit on escape key
 			exit(0);
 		}
 		if (keyState['f'] == PRESSED){
-			if (isFullscreen)
-				isFullscreen = false;
-			else
-				isFullscreen = true;
+			glutFullScreenToggle();
 		}
 		if (keyState[' '] == PRESSED){
 			autoView = true;
 		}
-		if (isFullscreen){
-			glutFullScreen();
+
+		if (debugInfo){
+			std::cout << "3D Debug Info: " << std::endl;
+			std::cout << "eyePosition: " << ModelManager::eyePosition.x << "x, " << ModelManager::eyePosition.y << "y, " << ModelManager::eyePosition.z << "z." << std::endl;
+			std::cout << "targetPosition: " << ModelManager::targetPosition.x << "x, " << ModelManager::targetPosition.y << "y, " << ModelManager::targetPosition.z << "z." << std::endl;
+			std::cout << "eye-target distance: " << distance(ModelManager::eyePosition, ModelManager::targetPosition) << std::endl;
+			debugInfo = false;
 		}
 		if (autoView){
-			// focus on the middle of the model
-			ModelManager::targetPosition = ModelManager::eyePosition + (normalize(ModelManager::autoViewCentre - ModelManager::eyePosition));
+			// mimic mouse click
+			mouseY = ModelManager::WINDOW_HEIGHT / 2;
+			mouseX = ModelManager::WINDOW_WIDTH / 2 - 50; // distance to the left of the centre (defines look rotation speed)
+			ModelManager::mouseRotate();
+
 			// strafe right
 			float autoViewRotationSpeed = 0.1f;
-			ModelManager::moveObserver(autoViewRotationSpeed * (-cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection)));
+			vec3 rotationDirection = -cross(ModelManager::eyePosition - ModelManager::targetPosition, ModelManager::upDirection);
+			ModelManager::moveObserver(autoViewRotationSpeed * rotationDirection);
 			
-			float opposite = ModelManager::eyePosition.x - ModelManager::autoViewCentre.x;
-			float hypotenuse = ModelManager::eyePosition.z - ModelManager::autoViewCentre.z;
-
-			std::cout << "horizontalAngle: " << ModelManager::horizontalAngle << std::endl;
-			//ModelManager::horizontalAngle = 3.14 - atanh(opposite/hypotenuse);
 		}
-
-	}
-	
+	}	
 }

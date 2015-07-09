@@ -69,7 +69,7 @@ namespace ModelManager{
 		// called when observer changes position or orientation
 		View = lookAt(eyePosition, targetPosition, upDirection);
 	}
-	void rotateMouse(){
+	void mouseRotate(){
 
 		horizontalAngle += rotationSpeed * core::deltaTime * float(WINDOW_WIDTH / 2 - InputManager::mouseX);
 		verticalAngle += rotationSpeed * core::deltaTime * float(WINDOW_HEIGHT / 2 - InputManager::mouseY);
@@ -83,7 +83,6 @@ namespace ModelManager{
 		upDirection = cross(rightDirection, direction); // recalibrate the 'up' direction for the View matrix
 		updateViewer(); // applies changes to the View matrix
 
-		std::cout << "hA in rotateMouse(): " << horizontalAngle << std::endl;
 	}
 	void updateGeometry(){ // change the scene
 
