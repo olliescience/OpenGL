@@ -22,8 +22,6 @@ namespace ModelManager{
 	vec3 targetPosition; // default target (view)
 	vec3 upDirection; // default sky direction (view)
 
-	vec3 autoViewCentre; // centre of the model for the auto-view feature
-
 	vec3 moveModel; // for moving vertices's (model)
 	float rotANGLE; // rotation (model)
 	float rotation; // initial rotation
@@ -46,8 +44,6 @@ namespace ModelManager{
 		eyePosition = vec3(0, 0, 15);
 		targetPosition = vec3(0, 0, 14);
 		upDirection = vec3(0, 1, 0);
-
-		autoViewCentre = vec3(0,0,-7.5);
 
 		moveModel = vec3(0, 0, 0);
 		rotANGLE = 0.02f;

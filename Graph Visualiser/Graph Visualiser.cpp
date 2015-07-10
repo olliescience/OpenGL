@@ -205,7 +205,8 @@ namespace core{
 		
 		glDrawArrays(GL_LINES, 0, 50); // draw lines using points starting at 0, 25 lines
 		glDrawArrays(GL_LINES, 1, 49);
-		glFlush(); // applies given commands to buffer
+
+		glFlush(); // applies given commands to (single) buffer
 
 	}
 }
@@ -215,7 +216,7 @@ int main(int argc, char *argv[])
 	{
 		glutInit(&argc, argv); // initialize the utility toolkit
 
-		glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // display will be a single window using RGB	
+		glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // display will be with a single buffer using RGB	
 		glutInitWindowSize(ModelManager::WINDOW_WIDTH, ModelManager::WINDOW_HEIGHT); // 720p window size
 		glutInitWindowPosition(0, 0); // top left
 
