@@ -61,7 +61,7 @@ namespace ModelManager{
 
 		horizontalAngle = 3.14f;
 		verticalAngle = 0.0f;
-		rotationSpeed = 0.0000001f;
+		rotationSpeed = 0.000001f;
 		core::deltaTime = 1;
 	}
 

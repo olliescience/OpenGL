@@ -57,12 +57,10 @@ namespace core{
 		GLuint vS = glCreateShader(GL_VERTEX_SHADER); // create a vertex shader identifier
 		glShaderSource(vS, 1, &vShader, NULL); // get the source for the shader
 		glCompileShader(vS); // compile the shader
-		cout << "vertex shader compiled" << endl;
 
 		GLuint fS = glCreateShader(GL_FRAGMENT_SHADER); // create a fragment shader identifier
 		glShaderSource(fS, 1, &fShader, NULL); // get the source
 		glCompileShader(fS); // compile the shader
-		cout << "fragment shader compiled" << endl;
 
 		// -- 3D SHADERS -- //
 		GLuint vS3 = glCreateShader(GL_VERTEX_SHADER); // define the 3D vertex shader
@@ -78,7 +76,6 @@ namespace core{
 		glAttachShader(shaderProgram, fS3); // attach the fragment shader
 		glAttachShader(shaderProgram, vS3); // attach the vertex shader
 		glLinkProgram(shaderProgram); // link them together
-
 	}
 	void init(){
 		// initialization logic here
@@ -91,6 +88,84 @@ namespace core{
 		InputManager::resetInputs();
 	}
 
+	void drawText(const char *text, int length, int x, int y){ // code from russian youtuber
+		glMatrixMode(GL_PROJECTION);
+		double *matrix = new double[16];
+		glGetDoublev(GL_PROJECTION_MATRIX, matrix);
+		glLoadIdentity();
+		glOrtho(0, ModelManager::WINDOW_WIDTH, 0, ModelManager::WINDOW_HEIGHT, -1, 1);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glPushMatrix();
+		glLoadIdentity();
+		glRasterPos2i(x, y);
+		for (int i = 0; i < length; i++){
+			glutBitmapCharacter(GLUT_BITMAP_9_BY_15, (int)text[i]);
+		}
+		glPopMatrix();
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixd(matrix);
+		glMatrixMode(GL_MODELVIEW);
+
+		delete matrix;
+	}
+	void drawDebugText(){ // draws useful information to the screen
+		int textHeight = 20;
+		// mouse information
+		string mouse = "mouse position: ";
+		string mX = std::to_string(InputManager::mouseX);
+		string mY = std::to_string(InputManager::mouseY);
+		string mouseText = mouse + "(" + mX + "," + mY + ")";
+		drawText(mouseText.data(), mouseText.size(), 20, ModelManager::WINDOW_HEIGHT - textHeight);
+
+		// viewpoint information
+		string view = "view direction: ";
+		string vX = std::to_string(ModelManager::targetPosition.x - ModelManager::eyePosition.x);
+		string vY = std::to_string(ModelManager::targetPosition.y - ModelManager::eyePosition.y);
+		string vZ = std::to_string(ModelManager::targetPosition.z - ModelManager::eyePosition.z);
+		// trim the text to 2 d.p. (check if first char is '-' and erase letters accordingly
+		if (vX[0] != '-') vX.erase(4); // trim the X
+		else vX.erase(5);
+		if (vY[0] != '-') vY.erase(4); // trim the Y
+		else vY.erase(5);
+		if (vZ[0] != '-') vZ.erase(4); // trim the Z
+		else vZ.erase(5);
+		string viewText = view + "(" + vX + "," + vY + "," + vZ + ")";
+		drawText(viewText.data(), viewText.size(), 20, ModelManager::WINDOW_HEIGHT - 2 * textHeight);
+
+		//keyboard status
+		string keyboardkeys = "pressed keys: ";
+		string pressedkeys = "";
+		for (int i = 0; i < 255; i++){
+			if (InputManager::keyState[i] == 0){
+				pressedkeys += std::to_string(i) + " ";
+			}
+		}
+		if (pressedkeys.empty()){
+			pressedkeys = "none";
+		}
+		string keyboardText = keyboardkeys + pressedkeys;
+		drawText(keyboardText.data(), keyboardText.size(), 20, ModelManager::WINDOW_HEIGHT - 3 * textHeight);
+
+		// mouse status
+		string mousekeys = "pressed buttons: ";
+		string mousebuttons = "";
+		for (int i = 0; i < 5; i++){
+			if (InputManager::mouseState[i] == 0){
+				mousebuttons += std::to_string(i) + " ";
+			}
+		}
+		if (mousebuttons.empty()){
+			mousebuttons = "none";
+		}
+		string mouseKeys = mousekeys + mousebuttons;
+		drawText(mouseKeys.data(), mouseKeys.size(), 20, ModelManager::WINDOW_HEIGHT - 4 * textHeight);
+
+		// 
+
+	}
+
 	void display(){
 		// all display related code in here
 		// like glDrawArrays(...) etc.
@@ -98,6 +173,8 @@ namespace core{
 		glClear(GL_COLOR_BUFFER_BIT); // apply the clear with the given color
 
 		InputManager::updateControls(); // update all inputs 
+
+		drawDebugText();
 
 		// timer code (bugged)
 		deltaTime = 1;
@@ -124,10 +201,10 @@ namespace core{
 		glPointSize(10.0f); // sets the diameter of the points
 		glEnable(GL_POINT_SMOOTH); // makes the points round (if used)
 		
-		glDrawArrays(GL_POINTS, 0, 40); // draw the points in the currently bound vao with current shader
-
-		glDrawArrays(GL_LINES, 40, 10); // draw lines using points starting at [40], 5 lines
-
+		glDrawArrays(GL_POINTS, 0, 50); // draw the points in the currently bound vao with current shader
+		
+		glDrawArrays(GL_LINES, 0, 50); // draw lines using points starting at 0, 25 lines
+		glDrawArrays(GL_LINES, 1, 49);
 		glFlush(); // applies given commands to buffer
 
 	}

@@ -79,8 +79,7 @@ namespace InputManager{
 	bool isFullscreen = true; // fullscreen by default
 	void updateControls(){
 		// MOUSE CHECKS
-		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){
-			
+		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){			
 			ModelManager::mouseRotate(); // rotate camera using mouse input
 			autoView = false; // cancels automatic panning
 		}
@@ -120,7 +119,7 @@ namespace InputManager{
 		if (autoView){
 			// mimic mouse click
 			mouseY = ModelManager::WINDOW_HEIGHT / 2;
-			mouseX = ModelManager::WINDOW_WIDTH / 2 - 90; // distance to the left from the centre (defines look rotation speed)
+			mouseX = ModelManager::WINDOW_WIDTH / 2 - 40; // distance to the left from the centre (defines look rotation speed)
 			ModelManager::mouseRotate();
 
 			// strafe right
