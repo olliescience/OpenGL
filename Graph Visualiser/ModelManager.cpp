@@ -2,10 +2,11 @@
 #include "stdafx.h" // include the standard library (modified)
 #include "Graph Visualiser.h" // include the main file
 #include "InputManager.h"
+#include "ShaderManager.h"
+#include "AntTweakBar.h"
 
 using namespace std; // make writing system functions easier
 using namespace glm; // make writing the maths easier
-using namespace core;
 
 namespace ModelManager{
 
@@ -39,8 +40,9 @@ namespace ModelManager{
 	void setModelVariables(){
 		WINDOW_WIDTH = 1280;
 		WINDOW_HEIGHT = 720;
+		TwWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // set the initial height for the antTweakBar
 		MOVESPEED = 0.001f;
-
+		
 		eyePosition = vec3(0, 0, 15);
 		targetPosition = vec3(0, 0, 14);
 		upDirection = vec3(0, 1, 0);
@@ -58,22 +60,23 @@ namespace ModelManager{
 		horizontalAngle = 3.14f;
 		verticalAngle = 0.0f;
 		rotationSpeed = 0.000001f;
-		core::deltaTime = 1;
+		ShaderManager::deltaTime = 1;
 	}
 
 	void updateViewer(){
 		// called when observer changes position or orientation
 		View = lookAt(eyePosition, targetPosition, upDirection);
 	}
+	
 	void mouseRotate(){
 
-		horizontalAngle += rotationSpeed * core::deltaTime * float(WINDOW_WIDTH / 2 - InputManager::mouseX);
-		verticalAngle += rotationSpeed * core::deltaTime * float(WINDOW_HEIGHT / 2 - InputManager::mouseY);
+		horizontalAngle += rotationSpeed * ShaderManager::deltaTime * float(WINDOW_WIDTH / 2 - InputManager::mouseX);
+		verticalAngle += rotationSpeed * ShaderManager::deltaTime * float(WINDOW_HEIGHT / 2 - InputManager::mouseY);
 
 		if (verticalAngle > 3.14 / 2)
-			verticalAngle = 3.14 / 2; // stop looking up more than 90d
+			verticalAngle = (float)3.14 / 2; // stop looking up more than 90d
 		if (verticalAngle < -3.14 / 2)
-			verticalAngle = -3.14 / 2; // stop looking down more than 90d
+			verticalAngle = (float)-3.14 / 2; // stop looking down more than 90d
 
 		// get the direction to look at using the angles above
 		vec3 direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
@@ -97,12 +100,14 @@ namespace ModelManager{
 
 	}
 	void reshape(int x, int y){ // called when window is modified
+		TwWindowSize(x, y); // tell ant tweak bar the new dimensions of the window
 		WINDOW_WIDTH = x; // get the width and...
 		WINDOW_HEIGHT = y; // height of the new window
 		//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR (not particularly useful)
 		Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
 		glViewport(0, 0, x, y);
 	}
+	
 	vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
 
 		vec3 generatedVec3; // the vec3 to be returned
@@ -139,44 +144,21 @@ namespace ModelManager{
 			points[n] = newPoint.x;
 			points[n + 1] = newPoint.y;
 			points[n + 2] = newPoint.z;
-
 			n += 2;
 		}
-
-		// generate links between points (two vec3's per line)
-		const int ldataLength = 6;
-		float lines[ldataLength]; // create array to hold the values
-		lines[0] = 0;
-		lines[1] = 0;
-		lines[2] = 0; // first point (0,0,0)
-		lines[3] = 9;
-		lines[4] = 5;
-		lines[5] = -15; // second point (9,5,-15)
-		
-		//// creates vertex buffer to hold lines
-		//int sizeofLines = ldataLength *sizeof(float);
-		//glGenBuffers(1, &lineVertexBuffer);
-		//glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
-		//glBufferData(GL_ARRAY_BUFFER, sizeofLines, lines, GL_STATIC_DRAW);
-
-		//glGenBuffers(1, &lineAttributeBuffer); // generate a unique value for the attrib
-		//glBindVertexArray(lineAttributeBuffer); // binds the vertex attribute array
-		//glEnableVertexAttribArray(0); // ?
-		//glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer); // shows that these attributes apply to the 'vbo' buffer
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
 		
 		//Vertex buffer object defines where the vertices will be stored (GPU)
 		int sizeOfAll = dataLength * sizeof(float);
-		glGenBuffers(1, &vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glGenBuffers(1, &ShaderManager::vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, ShaderManager::vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeOfAll, points, GL_STATIC_DRAW);
 		
 		// Vertex attribute object defines where the attributes for each vertex are stored and
 		//how they should be interpreted by the GPU 
-		glGenBuffers(1, &vao); // generate a unique value for the attrib
-		glBindVertexArray(vao); // binds the vertex attribute array
+		glGenBuffers(1, &ShaderManager::vao); // generate a unique value for the attrib
+		glBindVertexArray(ShaderManager::vao); // binds the vertex attribute array
 		glEnableVertexAttribArray(0); // ?
-		glBindBuffer(GL_ARRAY_BUFFER, vbo); // shows that these attributes apply to the 'vbo' buffer
+		glBindBuffer(GL_ARRAY_BUFFER, ShaderManager::vbo); // shows that these attributes apply to the 'vbo' buffer
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); // points to the starting location of the attribute storage
 	}	
 	void initialiseMatrices(){ // set Projection, Model & View
@@ -192,6 +174,7 @@ namespace ModelManager{
 
 		View = lookAt(eyePosition, targetPosition, upDirection); // set up default camera
 	}
+	
 	void moveObserver(vec3 direction){
 		// pretty standard - move the eye and the target together
 		eyePosition += direction * MOVESPEED;

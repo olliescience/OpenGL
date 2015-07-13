@@ -3,8 +3,6 @@
 #include "Graph Visualiser.h"
 #include "ModelManager.h"
 
-using namespace core; // use some function from the core
-
 namespace InputManager{
 	int mouseX, mouseY; // holds the coordinates of the mouse
 	bool inDrag; // holds whether or not the mouse is being dragged
@@ -17,9 +15,25 @@ namespace InputManager{
 	const int GLUT_SCROLL_UP = 3;
 	const int GLUT_SCROLL_DOWN = 4;
 
+	bool isFullscreen = true; // fullscreen by default
+	bool showDebugText = false; // doesn't show debug text by default
+	bool showTweakBar = false; // tweak bar is not visible by default
+
 	// callback function for keystrokes
 	void keyboard(unsigned char key, int x, int y){
 		keyState[key] = PRESSED; // set the state of the relevant key to 1 (see #define)
+
+		// handle all toggle controls in here as they will be called only when the key is pressed (prevent flicking)
+		// for definite state changes us onKeyUp()
+		if (key == 'f'){
+			isFullscreen = !isFullscreen;
+		}
+		if (key == 'o'){
+			showDebugText = !showDebugText;
+		}
+		if (key == 'p'){
+			showTweakBar = !showTweakBar;
+		}
 	}
 
 	// callback function for key releases
@@ -76,7 +90,6 @@ namespace InputManager{
 	}
 
 	bool autoView = false; // true if automatic view is enabled
-	bool isFullscreen = true; // fullscreen by default
 	void updateControls(){
 		// MOUSE CHECKS
 		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){			
@@ -108,9 +121,6 @@ namespace InputManager{
 		if (keyState[27] == PRESSED){ // exit on escape key
 			exit(0);
 		}
-		if (keyState['f'] == PRESSED){ // fullscreen toggle (bugged)
-			glutFullScreenToggle();
-		}
 		if (keyState['e'] == PRESSED){ // auto-view key
 			autoView = true;
 		}
@@ -128,5 +138,12 @@ namespace InputManager{
 			ModelManager::moveObserver(autoViewRotationSpeed * rotationDirection);
 			
 		}
+		if (isFullscreen){
+			glutFullScreen();
+		}
+		else{
+			glutLeaveFullScreen();
+		}
+				
 	}	
 }
