@@ -7,11 +7,23 @@
 
 // TODO: 
 // 1. get vbo and vao working & understood                                | 90%
-// 2. update the display callback to accommodate changes                  | 50%
-// 3. create shaders and get them working                                 | 90%
-// 4. add keyboard controls and camera manipulation                       | 80%
-// 5. add debugging text overlay (perhaps before (4)) <-raster text       | 0%
+// 2. update the display callback to accommodate changes                  | 90%
+// 3. create shaders and get them working                                 | 100%
+// 4. add keyboard controls and camera manipulation                       | 100%
+// 5. add debugging text overlay (perhaps before (4)) <-raster text       | 100%
 // 6. splice the source into separate files for consistency               | 100%
+
+void createTweakBar(){
+	// create tweak bar for practice
+	TwBar *testBar; // create a place to hold a tweak bar
+	testBar = TwNewBar("Settings"); // create the bar, called 'Settings'
+	// set the variables relating to the bar
+	TwDefine(" Settings size='250 500' position='20 20' iconifiable=false movable=false resizable=false fontsize=2 fontstyle=fixed valueswidth=100  ");
+	// add a read-write variable to the bar with a set of relative definitions
+	TwAddVarRW(testBar, "move speed: ", TW_TYPE_FLOAT, &ModelManager::MOVESPEED, "min=0.00001 max=0.01 step=0.001 ");
+	
+	TwDefine(" TW_HELP visible=false "); // remove the default help bar given by ATB
+}
 
 void init(){
 		// initialization logic here
@@ -27,11 +39,7 @@ void init(){
 		ModelManager::initialiseMatrices();
 		ShaderManager::initialiseShaders();
 		InputManager::resetInputs();
-
-		// create tweak bar for practice
-		TwBar *testBar;
-		testBar = TwNewBar("Settings");
-		TwAddVarRW(testBar, "Window Width: ", TW_TYPE_FLOAT, &ModelManager::WINDOW_WIDTH, "");
+		createTweakBar();
 	}
 
 void drawText(const char *text, int length, int x, int y){ // code from russian youtuber
@@ -122,10 +130,10 @@ void display(){
 
 		if (InputManager::showDebugText)
 			drawDebugText();
-		
-		if (InputManager::showTweakBar)
-			TwDraw();
 
+		if (InputManager::showTweakBar)
+			TwDraw(); // not sure how this functions, tweak bars are technically out of scope?
+		
 		// timer code (bugged)
 		ShaderManager::deltaTime = 1;
 		//int currentTime = glutGet(GLUT_ELAPSED_TIME);
@@ -154,9 +162,8 @@ void display(){
 		
 		glDrawArrays(GL_POINTS, 0, 50); // draw the points in the currently bound vao with current shader
 		
-
 		glDrawArrays(GL_LINES, 0, 50); // draw lines using points starting at 0, 25 lines
-		glDrawArrays(GL_LINES, 1, 49);
+		glDrawArrays(GL_LINES, 1, 49); // draw some more lines xD
 
 		//glFlush(); // applies given commands to (single) buffer
 		glutSwapBuffers();
@@ -169,13 +176,12 @@ int main(int argc, char *argv[])
 
 		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // display will be with a single buffer using RGB	
 		glutInitWindowSize(ModelManager::WINDOW_WIDTH, ModelManager::WINDOW_HEIGHT); // 720p window size
-		glutInitWindowPosition(0, 0); // top left
+		glutInitWindowPosition(0, 0); // top left	
 
 		glutCreateWindow("OpenGL Incremental Development v0.4.0"); // name the window
 		glewInit(); // initialize the extension wrangler
 
 		glutDisplayFunc(display); // define the callback function for the display
-		glutFullScreen(); // go fullscreen as default
 
 		glutMouseFunc(InputManager::mouse);
 		glutKeyboardFunc(InputManager::keyboard);

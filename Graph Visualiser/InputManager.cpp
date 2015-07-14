@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "Graph Visualiser.h"
 #include "ModelManager.h"
+#include "AntTweakBar.h"
 
 namespace InputManager{
 	int mouseX, mouseY; // holds the coordinates of the mouse
@@ -15,16 +16,18 @@ namespace InputManager{
 	const int GLUT_SCROLL_UP = 3;
 	const int GLUT_SCROLL_DOWN = 4;
 
-	bool isFullscreen = true; // fullscreen by default
+	bool isFullscreen = false; // fullscreen by default
 	bool showDebugText = false; // doesn't show debug text by default
 	bool showTweakBar = false; // tweak bar is not visible by default
+	bool autoView = false; // true if automatic view is enabled
 
 	// callback function for keystrokes
 	void keyboard(unsigned char key, int x, int y){
+		TwEventKeyboardGLUT(key, x, y); // tell tweak bar about key press
 		keyState[key] = PRESSED; // set the state of the relevant key to 1 (see #define)
 
 		// handle all toggle controls in here as they will be called only when the key is pressed (prevent flicking)
-		// for definite state changes us onKeyUp()
+		// for definite state changes use onKeyUp()
 		if (key == 'f'){
 			isFullscreen = !isFullscreen;
 		}
@@ -43,7 +46,7 @@ namespace InputManager{
 
 	// callback function for mouse clicks
 	void mouse(int button, int state, int x, int y){
-
+		TwEventMouseButtonGLUT(button, state, x, y); // tell tweak bar about the mouse
 		switch (button) // take the input to the function
 		{
 		case GLUT_LEFT_BUTTON: // compare it with the predefined GLUT values (0-5)
@@ -66,6 +69,7 @@ namespace InputManager{
 
 	// callback for mouse click and drag (any button)
 	void mousemove(int x, int y){
+		TwEventMouseMotionGLUT(x, y); // tell tweak bar the mouse is moving
 		mouseX = x; // set the coordinates of the mouse any time it is moved
 		mouseY = y; // for maximum responsiveness (might be a little inefficient)
 		inDrag = true;
@@ -73,6 +77,7 @@ namespace InputManager{
 
 	// callback for any time the mouse if moved
 	void mousepassive(int x, int y){
+		TwEventMouseMotionGLUT(x, y); // tell tweak bar the mouse moved.
 		inDrag = false;
 		mouseX = x; // set the coordinates of the mouse any time it is moved
 		mouseY = y; // for maximum responsiveness (might be a little inefficient)
@@ -89,10 +94,10 @@ namespace InputManager{
 		}
 	}
 
-	bool autoView = false; // true if automatic view is enabled
+	// perform all button and bool checks
 	void updateControls(){
 		// MOUSE CHECKS
-		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED){			
+		if (mouseState[GLUT_LEFT_BUTTON] == PRESSED && !showTweakBar){ // clicking only moves the camera when the bar isn't up			
 			ModelManager::mouseRotate(); // rotate camera using mouse input
 			autoView = false; // cancels automatic panning
 		}
@@ -142,7 +147,7 @@ namespace InputManager{
 			glutFullScreen();
 		}
 		else{
-			glutLeaveFullScreen();
+			glutLeaveFullScreen(); 
 		}
 				
 	}	
