@@ -15,9 +15,9 @@
 
 void createTweakBar(){
 	// create tweak bar for practice
-	TwBar *testBar; // create a place to hold a tweak bar
-	testBar = TwNewBar("Settings"); // create the bar, called 'Settings'
-	// set the variables relating to the bar
+	TwBar *testBar; // create a place to hold a tweak bar 
+	// create the bar, called 'Settings'	
+	testBar = TwNewBar("Settings"); // set the variables relating to the bar
 	TwDefine(" Settings size='250 500' position='20 20' iconifiable=false movable=false resizable=false fontsize=2 fontstyle=fixed valueswidth=100  ");
 	// add a read-write variable to the bar with a set of relative definitions
 	TwAddVarRW(testBar, "move speed: ", TW_TYPE_FLOAT, &ModelManager::MOVESPEED, "min=0.00001 max=0.01 step=0.001 ");

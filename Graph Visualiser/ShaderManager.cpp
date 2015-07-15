@@ -1,69 +1,95 @@
 #include "stdafx.h"
 
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+
+// shader loading source mostly from http://www.nexcius.net/2012/11/20/how-to-load-a-glsl-shader-in-opengl-using-c/
+
 namespace ShaderManager{
 	// Global Variables
 	GLuint vao, vbo; // vertex buffer and attribute objects
 	GLuint shaderProgram; // shader programs
 	float deltaTime; // store time changes here so they can be easily used in shaders
 
-	void initialiseShaders(){ // create shaders
+	std::string readFile(const char *filePath) {
+		std::string content;
+		std::ifstream fileStream(filePath, std::ios::in);
 
-		const char* vShader = // pass-through vertex shader
-			"#version 400\n"
-			"in vec3 vPosition;"
-			"void main(){"
-			"	gl_Position = vec4(vPosition, 1.0);" // x,y,z,depth
-			"}";
+		if (!fileStream.is_open()) {
+			std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
+			return "";
+		}
 
-		const char* fShader = // standard shader for coloring (set to yellow)
-			"#version 400\n"
-			"out vec4 fragColor;"
-			"void main(){ "
-			"	fragColor = vec4(1.0, 1.0, 0.0, 1.0);" // RGBA
-			"}";
+		std::string line = "";
+		while (!fileStream.eof()) {
+			std::getline(fileStream, line);
+			content.append(line + "\n");
+		}
 
-		const char* vShader3 = // pass-through 3D vertex shader
-			"#version 400\n"
-			"in vec3 vertexPosition;"
-			"uniform mat4 projection_matrix;" // for perspective, aspect ratio and clipping
-			"uniform mat4 view_matrix;" // for manipulating viewpoint
-			"uniform mat4 model_matrix;" // for moving objects
-			"uniform vec3 eyePosition;" // position of the observer (for point scaling)
-			"void main(){"
-			// apparently multiplying it all together works fine... xD
-			"	gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertexPosition, 1);"
-			"	gl_PointSize = 350 * 1/length(distance(eyePosition, vertexPosition));" // change the size of the point in the shader!!
-			"}";
-
-		const char* fShader3 = // standard shader for coloring
-			"#version 400\n"
-			"out vec4 fragColor;"
-			"void main(){"
-			"	fragColor = vec4(0.5, 1.0, 0.5, 1.0);" // RGBA
-			"}";
-
-		// compile shaders
-		GLuint vS = glCreateShader(GL_VERTEX_SHADER); // create a vertex shader identifier
-		glShaderSource(vS, 1, &vShader, NULL); // get the source for the shader
-		glCompileShader(vS); // compile the shader
-
-		GLuint fS = glCreateShader(GL_FRAGMENT_SHADER); // create a fragment shader identifier
-		glShaderSource(fS, 1, &fShader, NULL); // get the source
-		glCompileShader(fS); // compile the shader
-
-		// -- 3D SHADERS -- //
-		GLuint vS3 = glCreateShader(GL_VERTEX_SHADER); // define the 3D vertex shader
-		glShaderSource(vS3, 1, &vShader3, NULL); // match it to the source code
-		glCompileShader(vS3); // compile the shader
-
-		GLuint fS3 = glCreateShader(GL_FRAGMENT_SHADER); // define the fragment shader
-		glShaderSource(fS3, 1, &fShader3, NULL); // match the shader identifier with the source
-		glCompileShader(fS3); // compile the shader
-
-		// create shader program
-		shaderProgram = glCreateProgram(); // create an empty program
-		glAttachShader(shaderProgram, fS3); // attach the fragment shader
-		glAttachShader(shaderProgram, vS3); // attach the vertex shader
-		glLinkProgram(shaderProgram); // link them together
+		fileStream.close();
+		return content;
 	}
+	
+	GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
+		GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+		GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+		// Read shaders
+		std::string vertShaderStr = readFile(vertex_path);
+		std::string fragShaderStr = readFile(fragment_path);
+		const char *vertShaderSrc = vertShaderStr.c_str();
+		const char *fragShaderSrc = fragShaderStr.c_str();
+		
+		GLint result = GL_FALSE;
+		int logLength;
+
+		// Compile vertex shader
+		std::cout << "Compiling vertex shader." << std::endl;
+		glShaderSource(vertShader, 1, &vertShaderSrc, NULL);
+		glCompileShader(vertShader);
+
+		// Check vertex shader
+		glGetShaderiv(vertShader, GL_COMPILE_STATUS, &result);
+		glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &logLength);
+		std::vector<char> vertShaderError((logLength > 1) ? logLength : 1);
+		glGetShaderInfoLog(vertShader, logLength, NULL, &vertShaderError[0]);
+		std::cout << &vertShaderError[0] << std::endl;
+
+		// Compile fragment shader
+		std::cout << "Compiling fragment shader." << std::endl;
+		glShaderSource(fragShader, 1, &fragShaderSrc, NULL);
+		glCompileShader(fragShader);
+
+		// Check fragment shader
+		glGetShaderiv(fragShader, GL_COMPILE_STATUS, &result);
+		glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
+		std::vector<char> fragShaderError((logLength > 1) ? logLength : 1);
+		glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
+		std::cout << &fragShaderError[0] << std::endl;
+
+		std::cout << "Linking program" << std::endl;
+		GLuint program = glCreateProgram();
+		glAttachShader(program, vertShader);
+		glAttachShader(program, fragShader);
+		glLinkProgram(program);
+
+		glGetProgramiv(program, GL_LINK_STATUS, &result);
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+		std::vector<char> programError((logLength > 1) ? logLength : 1);
+		glGetProgramInfoLog(program, logLength, NULL, &programError[0]);
+		std::cout << &programError[0] << std::endl;
+
+		glDeleteShader(vertShader);
+		glDeleteShader(fragShader);
+
+		return program;
+	}
+	
+	void initialiseShaders(){ // create shaders
+		shaderProgram = LoadShader("C:\\Users\\490741\\Desktop\\vertex.txt", "C:\\Users\\490741\\Desktop\\fragment.txt");
+	}
+
 }

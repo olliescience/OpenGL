@@ -82,6 +82,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Text Include="..\..\..\..\Desktop\fragment.txt" />
+    <Text Include="..\..\..\..\Desktop\vertex.txt" />
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
