@@ -37,11 +37,16 @@ namespace ModelManager{
 	float verticalAngle;
 	float rotationSpeed; // the maximum speed 
 
+	int moveSetValue;
+	int rotateSetValue;
+
 	void setModelVariables(){
 		WINDOW_WIDTH = 1280;
 		WINDOW_HEIGHT = 720;
 		TwWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // set the initial height for the antTweakBar
-		MOVESPEED = 0.001f;
+		
+		moveSetValue = 25;
+		MOVESPEED = (float)moveSetValue / 5000;
 		
 		eyePosition = vec3(0, 0, 15);
 		targetPosition = vec3(0, 0, 14);
@@ -59,8 +64,14 @@ namespace ModelManager{
 
 		horizontalAngle = 3.14f;
 		verticalAngle = 0.0f;
-		rotationSpeed = 0.000001f;
+		rotateSetValue = 25;
+		rotationSpeed = (float)rotateSetValue / 50000000;
 		ShaderManager::deltaTime = 1;
+	}
+
+	void updateSettings(){
+		MOVESPEED = (float)moveSetValue / 5000;
+		rotationSpeed = (float)rotateSetValue / 50000000;
 	}
 
 	void updateViewer(){

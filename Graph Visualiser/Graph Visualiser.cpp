@@ -18,10 +18,20 @@ void createTweakBar(){
 	TwBar *testBar; // create a place to hold a tweak bar 
 	// create the bar, called 'Settings'	
 	testBar = TwNewBar("Settings"); // set the variables relating to the bar
-	TwDefine(" Settings size='250 500' position='20 20' iconifiable=false movable=false resizable=false fontsize=2 fontstyle=fixed valueswidth=100  ");
+	TwDefine(" Settings size='300 500' position='20 20' iconifiable=false movable=false resizable=false fontsize=2 fontstyle=fixed valueswidth=100  ");
 	// add a read-write variable to the bar with a set of relative definitions
-	TwAddVarRW(testBar, "move speed: ", TW_TYPE_FLOAT, &ModelManager::MOVESPEED, "min=0.00001 max=0.01 step=0.001 ");
-	
+	TwAddVarRW(testBar, "move speed: ", TW_TYPE_INT32, &ModelManager::moveSetValue, "min=1 max=100 step=1 ");
+	TwAddVarRW(testBar, "rotation speed: ", TW_TYPE_INT32, &ModelManager::rotateSetValue, "min=1 max=100 step=1");
+
+	// add color options
+	TwAddVarRW(testBar, "pointRed", TW_TYPE_FLOAT, &ShaderManager::pointRed, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "pointGreen", TW_TYPE_FLOAT, &ShaderManager::pointGreen, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "pointBlue", TW_TYPE_FLOAT, &ShaderManager::pointBlue, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "lineRed", TW_TYPE_FLOAT, &ShaderManager::lineRed, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "lineGreen", TW_TYPE_FLOAT, &ShaderManager::lineGreen, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "lineBlue", TW_TYPE_FLOAT, &ShaderManager::lineBlue, "min=0 max=1 step=0.1");
+
+
 	TwDefine(" TW_HELP visible=false "); // remove the default help bar given by ATB
 }
 
@@ -31,6 +41,7 @@ void init(){
 		
 		TwInit(TW_OPENGL, NULL); // initialize the ant tweak bar 
 		glEnable(GL_VERTEX_PROGRAM_POINT_SIZE); // allow shader to set point size
+		glEnable(GL_BLEND);
 		glEnable(GL_POINT_SMOOTH); // makes the points round (if used)
 
 		// call relevant initializations in order
@@ -123,7 +134,7 @@ void drawDebugText(){ // draws useful information to the screen
 void display(){
 		// all display related code in here
 		// like glDrawArrays(...) etc.
-		glClearColor(0.0f, 0.0f, 0.1f, 1.0f); // the color to clear to (dark navy)
+		glClearColor(0.6, 0.6, 0.6, 1.0); // the color to clear to (dark navy)
 		glClear(GL_COLOR_BUFFER_BIT); // apply the clear with the given color
 
 		InputManager::updateControls(); // update all inputs 
@@ -131,9 +142,13 @@ void display(){
 		if (InputManager::showDebugText)
 			drawDebugText();
 
-		if (InputManager::showTweakBar)
+		if (InputManager::showTweakBar){
+			ModelManager::updateSettings();
+			ShaderManager::updateShader(ShaderManager::pointShader);
+			ShaderManager::updateShader(ShaderManager::lineShader);
 			TwDraw(); // not sure how this functions, tweak bars are technically out of scope?
-		
+		}
+
 		// timer code (bugged)
 		ShaderManager::deltaTime = 1;
 		//int currentTime = glutGet(GLUT_ELAPSED_TIME);
@@ -141,27 +156,20 @@ void display(){
 		//lastTime = currentTime;
 
 		//cout << "screen cleared" << endl;
-		glUseProgram(ShaderManager::shaderProgram); // using a shader program from init()...
+		glUseProgram(ShaderManager::pointShader); // using a shader program from init()...
 		//cout << "using shader program" << endl;
 
-		// set all of the shader matrix variables (the 'uniform' ones)
-		GLuint projLoc = glGetUniformLocation(ShaderManager::shaderProgram, "projection_matrix"); // get the location of the shader variable
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(ModelManager::Projection)); // set it to the relevant matrix above
-
-		GLuint viewLoc = glGetUniformLocation(ShaderManager::shaderProgram, "view_matrix"); // same for the view matrix
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(ModelManager::View)); // set it here
-
-		GLuint modelLoc = glGetUniformLocation(ShaderManager::shaderProgram, "model_matrix"); // same for the model matrix
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(ModelManager::Model)); // set it here
-
-		GLuint eyeLoc = glGetUniformLocation(ShaderManager::shaderProgram, "eyePosition"); // give the shader the position of the observer
-		glUniform3f(eyeLoc, ModelManager::eyePosition.x, ModelManager::eyePosition.y, ModelManager::eyePosition.z);
 
 		glBindVertexArray(ShaderManager::vao);
-
-		
+		ShaderManager::updateShader(ShaderManager::pointShader);
 		glDrawArrays(GL_POINTS, 0, 50); // draw the points in the currently bound vao with current shader
 		
+
+		glUseProgram(ShaderManager::lineShader); // using a shader program from init()...
+		//cout << "using shader program" << endl;
+
+		ShaderManager::updateShader(ShaderManager::lineShader);
+
 		glDrawArrays(GL_LINES, 0, 50); // draw lines using points starting at 0, 25 lines
 		glDrawArrays(GL_LINES, 1, 49); // draw some more lines xD
 
@@ -178,7 +186,7 @@ int main(int argc, char *argv[])
 		glutInitWindowSize(ModelManager::WINDOW_WIDTH, ModelManager::WINDOW_HEIGHT); // 720p window size
 		glutInitWindowPosition(0, 0); // top left	
 
-		glutCreateWindow("OpenGL Incremental Development v0.4.0"); // name the window
+		glutCreateWindow("OpenGL Incremental Development v0.4.0 - colors by Declan (tm)"); // name the window
 		glewInit(); // initialize the extension wrangler
 
 		glutDisplayFunc(display); // define the callback function for the display

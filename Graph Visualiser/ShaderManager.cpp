@@ -6,13 +6,19 @@
 #include <vector>
 #include <algorithm>
 
+#include "ModelManager.h"
+#include "glm/vec4.hpp"
+
 // shader loading source mostly from http://www.nexcius.net/2012/11/20/how-to-load-a-glsl-shader-in-opengl-using-c/
 
 namespace ShaderManager{
 	// Global Variables
 	GLuint vao, vbo; // vertex buffer and attribute objects
-	GLuint shaderProgram; // shader programs
+	GLuint pointShader, lineShader; // shader programs
 	float deltaTime; // store time changes here so they can be easily used in shaders
+	glm::vec4 pointColor, lineColor;
+	float pointRed, pointGreen, pointBlue; // RGB for points
+	float lineRed, lineGreen, lineBlue; // RGB for lines
 
 	std::string readFile(const char *filePath) {
 		std::string content;
@@ -89,7 +95,43 @@ namespace ShaderManager{
 	}
 	
 	void initialiseShaders(){ // create shaders
-		shaderProgram = LoadShader("C:\\Users\\490741\\Desktop\\vertex.txt", "C:\\Users\\490741\\Desktop\\fragment.txt");
+		pointRed = 1.0;
+		pointBlue = 0.0;
+		pointGreen = 0.0; // points should be red
+		lineRed = 0.0;
+		lineBlue = 0.0;
+		lineGreen = 1.0; // lines should be green
+		pointColor = glm::vec4(pointRed, pointGreen, pointBlue, 1.0);
+		lineColor = glm::vec4(lineRed, lineGreen, lineBlue, 1.0);
+
+		pointShader = LoadShader("pointVertex.txt", "pointFragment.txt");
+		lineShader = LoadShader("lineVertex.txt", "lineFragment.txt");
+	}
+
+	void updateShader(GLuint shader){
+		// set all of the shader matrix variables (the 'uniform' ones)
+		GLuint projLoc = glGetUniformLocation(shader, "projection_matrix"); // get the location of the shader variable
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(ModelManager::Projection)); // set it to the relevant matrix above
+
+		GLuint viewLoc = glGetUniformLocation(shader, "view_matrix"); // same for the view matrix
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(ModelManager::View)); // set it here
+
+		GLuint modelLoc = glGetUniformLocation(shader, "model_matrix"); // same for the model matrix
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(ModelManager::Model)); // set it here
+
+		GLuint eyeLoc = glGetUniformLocation(shader, "eyePosition"); // give the shader the position of the observer
+		glUniform3f(eyeLoc, ModelManager::eyePosition.x, ModelManager::eyePosition.y, ModelManager::eyePosition.z);
+
+		if (shader == ShaderManager::pointShader){ // sets the point colors
+			GLuint colorLoc = glGetUniformLocation(shader, "inColor"); // give the shader the color
+			glUniform4f(colorLoc, pointRed, pointGreen, pointBlue, 1.0);
+		}
+		if (shader == ShaderManager::lineShader){ // sets the line colors
+			GLuint colorLoc = glGetUniformLocation(shader, "inColor"); // give the shader the color
+			glUniform4f(colorLoc, lineRed, lineGreen, lineBlue, 1.0);
+
+		}
+
 	}
 
 }

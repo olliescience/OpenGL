@@ -32,7 +32,11 @@ namespace ModelManager{
 	extern float verticalAngle;
 	extern float rotationSpeed; // the maximum speed 
 
+	extern int moveSetValue; // settings value of the movement speed
+	extern int rotateSetValue; // setting value for the rotation velocity
+
 	extern void setModelVariables();
+	extern void updateSettings();
 	extern void updateViewer();
 	extern void mouseRotate();
 	extern void updateGeometry();
