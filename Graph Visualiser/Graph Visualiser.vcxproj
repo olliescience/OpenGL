@@ -52,13 +52,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\ATB\include;C:\Users\490741\Downloads\OpenGL-master\OpenGL-master\Libraries;$(SolutionDir)Libraries\freeglut\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\LibXL\include_cpp;$(SolutionDir)Libraries\ATB\include;$(SolutionDir)Libraries\freeglut\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ATB\lib;$(SolutionDir)Libraries;$(SolutionDir)Libraries\freeglut\lib;$(SolutionDir)Libraries\glew\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32d.lib;freeglut.lib;AntTweakBar.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\LibXL\lib;$(SolutionDir)Libraries\ATB\lib;$(SolutionDir)Libraries;$(SolutionDir)Libraries\freeglut\lib;$(SolutionDir)Libraries\glew\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32d.lib;freeglut.lib;AntTweakBar.lib;libxl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -70,15 +70,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\ATB\include;C:\Users\490741\Downloads\OpenGL-master\OpenGL-master\Libraries;$(SolutionDir)Libraries\freeglut\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\LibXL\include_cpp;$(SolutionDir)Libraries\ATB\include;$(SolutionDir)Libraries\freeglut\include;$(SolutionDir)Libraries\glm;$(SolutionDir)Libraries\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ATB\lib;$(SolutionDir)Libraries;$(SolutionDir)Libraries\freeglut\lib;$(SolutionDir)Libraries\glew\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32d.lib;freeglut.lib;AntTweakBar.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\LibXL\lib;$(SolutionDir)Libraries\ATB\lib;$(SolutionDir)Libraries;$(SolutionDir)Libraries\freeglut\lib;$(SolutionDir)Libraries\glew\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32d.lib;freeglut.lib;AntTweakBar.lib;libxl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Graph Visualiser.h" />
+    <ClInclude Include="DataManager.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="ModelManager.h" />
     <ClInclude Include="ShaderManager.h" />
@@ -95,6 +96,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DataManager.cpp" />
     <ClCompile Include="Graph Visualiser.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\Ollie\Source\Repos\OpenGL\Libraries\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\Ollie\Source\Repos\OpenGL\Libraries\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

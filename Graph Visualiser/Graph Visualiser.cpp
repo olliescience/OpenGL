@@ -5,6 +5,8 @@
 #include "ShaderManager.h"
 #include "AntTweakBar.h"
 
+#include "DataManager.h"
+
 // TODO: 
 // 1. get vbo and vao working & understood                                | 90%
 // 2. update the display callback to accommodate changes                  | 90%
@@ -162,7 +164,7 @@ void display(){
 
 		glBindVertexArray(ShaderManager::vao);
 		ShaderManager::updateShader(ShaderManager::pointShader);
-		glDrawArrays(GL_POINTS, 0, 50); // draw the points in the currently bound vao with current shader
+		glDrawArrays(GL_POINTS, 0, 100); // draw the points in the currently bound vao with current shader
 		
 
 		glUseProgram(ShaderManager::lineShader); // using a shader program from init()...
@@ -170,8 +172,8 @@ void display(){
 
 		ShaderManager::updateShader(ShaderManager::lineShader);
 
-		glDrawArrays(GL_LINES, 0, 50); // draw lines using points starting at 0, 25 lines
-		glDrawArrays(GL_LINES, 1, 49); // draw some more lines xD
+		glDrawArrays(GL_LINES, 0, 100); // draw lines using points starting at 0, 25 lines
+		glDrawArrays(GL_LINES, 1, 99); // draw some more lines xD
 
 		//glFlush(); // applies given commands to (single) buffer
 		glutSwapBuffers();
@@ -180,13 +182,15 @@ void display(){
 // version 0.4.0 (experimental)
 int main(int argc, char *argv[])
 	{
+		DataManager::LoadData();
+
 		glutInit(&argc, argv); // initialize the utility toolkit
 
 		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // display will be with a single buffer using RGB	
 		glutInitWindowSize(ModelManager::WINDOW_WIDTH, ModelManager::WINDOW_HEIGHT); // 720p window size
 		glutInitWindowPosition(0, 0); // top left	
 
-		glutCreateWindow("OpenGL Incremental Development v0.4.0 - colors by Declan (tm)"); // name the window
+		glutCreateWindow("OpenGL Incremental Development v0.4.0"); // name the window
 		glewInit(); // initialize the extension wrangler
 
 		glutDisplayFunc(display); // define the callback function for the display
