@@ -135,8 +135,7 @@ void drawDebugText(){ // draws useful information to the screen
 
 void display(){
 		// all display related code in here
-		// like glDrawArrays(...) etc.
-		glClearColor(0.6, 0.6, 0.6, 1.0); // the color to clear to (dark navy)
+		glClearColor(0.0, 0.0, 0.1, 1.0); // the color to clear to (dark navy)
 		glClear(GL_COLOR_BUFFER_BIT); // apply the clear with the given color
 
 		InputManager::updateControls(); // update all inputs 
