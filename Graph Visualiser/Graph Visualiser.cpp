@@ -32,8 +32,7 @@ void createTweakBar(){
 	TwAddVarRW(testBar, "lineRed", TW_TYPE_FLOAT, &ShaderManager::lineRed, "min=0 max=1 step=0.1");
 	TwAddVarRW(testBar, "lineGreen", TW_TYPE_FLOAT, &ShaderManager::lineGreen, "min=0 max=1 step=0.1");
 	TwAddVarRW(testBar, "lineBlue", TW_TYPE_FLOAT, &ShaderManager::lineBlue, "min=0 max=1 step=0.1");
-
-
+	
 	TwDefine(" TW_HELP visible=false "); // remove the default help bar given by ATB
 }
 
@@ -151,8 +150,7 @@ void display(){
 			TwDraw(); // not sure how this functions, tweak bars are technically out of scope?
 		}
 
-		// timer code (bugged)
-		int currentTime = glutGet(GLUT_ELAPSED_TIME);
+		int currentTime = glutGet(GLUT_ELAPSED_TIME); // timing system making usage consistent on different processors
 		ShaderManager::deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
 
@@ -162,15 +160,15 @@ void display(){
 		
 		glBindVertexArray(ShaderManager::vao);
 		ShaderManager::updateShader(ShaderManager::pointShader);
-		glDrawArrays(GL_POINTS, 0, 5); // draw the points in the currently bound vao with current shader
+		glDrawArrays(GL_POINTS, 0, 75); // draw the points in the currently bound vao with current shader
 		
 		glUseProgram(ShaderManager::lineShader); // using a shader program from init()...
 		//cout << "using shader program" << endl;
 
 		ShaderManager::updateShader(ShaderManager::lineShader);
 
-		glDrawArrays(GL_LINES, 0, 5); // draw lines using points starting at 0, 25 lines
-		glDrawArrays(GL_LINES, 1, 4); // draw some more lines xD
+		glDrawArrays(GL_LINES, 0, 75); // draw lines using points starting at 0, 25 lines
+		glDrawArrays(GL_LINES, 1, 74); // draw some more lines xD
 
 		//glFlush(); // applies given commands to (single) buffer
 		glutSwapBuffers();

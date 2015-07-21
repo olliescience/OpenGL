@@ -5,9 +5,6 @@
 #include "ShaderManager.h"
 #include "AntTweakBar.h"
 
-using namespace std; // make writing system functions easier
-using namespace glm; // make writing the maths easier
-
 namespace ModelManager{
 
 	int WINDOW_WIDTH;
@@ -15,18 +12,18 @@ namespace ModelManager{
 
 	float MOVESPEED; // the movement speed of the observer
 
-	mat4 Projection, // for scene projection to viewer
+	glm::mat4 Projection, // for scene projection to viewer
 		 View, // location and nature of observer
 		 Model; // for manipulating position/rotation
 
-	vec3 eyePosition; // default eye position (view)
-	vec3 targetPosition; // default target (view)
-	vec3 upDirection; // default sky direction (view)
+	glm::vec3 eyePosition; // default eye position (view)
+	glm::vec3 targetPosition; // default target (view)
+	glm::vec3 upDirection; // default sky direction (view)
 
-	vec3 moveModel; // for moving vertices's (model)
+	glm::vec3 moveModel; // for moving vertices's (model)
 	float rotANGLE; // rotation (model)
 	float rotation; // initial rotation
-	vec3 rotCENTER; // center of rotation
+	glm::vec3 rotCENTER; // center of rotation
 
 	float FOV; // field of view (projection)
 	float AR; // aspect ratio (projection)
@@ -46,13 +43,13 @@ namespace ModelManager{
 		TwWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // set the initial height for the antTweakBar
 		
 		moveSetValue = 25;
-		MOVESPEED = (float)moveSetValue / 500;
+		MOVESPEED = (float)moveSetValue / 5000;
 		
-		eyePosition = vec3(0, 0, 15);
-		targetPosition = vec3(0, 0, 14);
-		upDirection = vec3(0, 1, 0);
+		eyePosition = glm::vec3(0, 0, 15);
+		targetPosition = glm::vec3(0, 0, 14);
+		upDirection = glm::vec3(0, 1, 0);
 
-		moveModel = vec3(0, 0, 0);
+		moveModel = glm::vec3(0, 0, 0);
 		rotANGLE = 0.02f;
 		rotation = 0;
 		rotCENTER = targetPosition - eyePosition;
@@ -65,13 +62,13 @@ namespace ModelManager{
 		horizontalAngle = 3.14f;
 		verticalAngle = 0.0f;
 		rotateSetValue = 25;
-		rotationSpeed = (float)rotateSetValue / 50000000;
+		rotationSpeed = (float)rotateSetValue / 5000000;
 		ShaderManager::deltaTime = 1;
 	}
 
 	void updateSettings(){
-		MOVESPEED = (float)moveSetValue / 500;
-		rotationSpeed = (float)rotateSetValue / 50000000;
+		MOVESPEED = (float)moveSetValue / 5000;
+		rotationSpeed = (float)rotateSetValue / 5000000;
 	}
 
 	void updateViewer(){
@@ -90,9 +87,9 @@ namespace ModelManager{
 			verticalAngle = (float)-3.14 / 2; // stop looking down more than 90d
 
 		// get the direction to look at using the angles above
-		vec3 direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
+		glm::vec3 direction = glm::vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
 		// get the (rightmost) perpendicular to the look direction
-		vec3 rightDirection = normalize(vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f)));
+		glm::vec3 rightDirection = normalize(glm::vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f)));
 
 		targetPosition = eyePosition + direction; // set the new target position for the View matrix
 		upDirection = cross(rightDirection, direction); // recalibrate the 'up' direction for the View matrix
@@ -115,13 +112,13 @@ namespace ModelManager{
 		WINDOW_WIDTH = x; // get the width and...
 		WINDOW_HEIGHT = y; // height of the new window
 		//AR = (float)WINDOW_WIDTH / WINDOW_HEIGHT; // uncomment for dynamic AR (not particularly useful)
-		Projection = perspective(FOV, AR, NEARclip, FARclip); // update perspective
+		Projection = glm::perspective(FOV, AR, NEARclip, FARclip); // update perspective
 		glViewport(0, 0, x, y);
 	}
 	
-	vec3 generateVec3(vec2 xRange, vec2 yRange, vec2 zRange){
+	glm::vec3 generateVec3(glm::vec2 xRange, glm::vec2 yRange, glm::vec2 zRange){
 
-		vec3 generatedVec3; // the vec3 to be returned
+		glm::vec3 generatedVec3; // the vec3 to be returned
 		// difficult to think around so setting out intuitively
 		float xMin, xMax, xValue, yMin, yMax, yValue, zMin, zMax, zValue;
 		// get the min/max for each dimension
@@ -142,16 +139,16 @@ namespace ModelManager{
 		cout << "yValue: " << yValue << endl;
 		cout << "zValue: " << zValue << endl;*/
 		
-		generatedVec3 = vec3(xValue, yValue, zValue);
+		generatedVec3 = glm::vec3(xValue, yValue, zValue);
 		return generatedVec3;
 	}	
 	void initialiseModel(){ // sets data and buffers
 
 		// generate a sea of points...
-		const int dataLength = 15;
+		const int dataLength = 225;
 		float points[dataLength]; // creates  place to hold 150 floats (50 coordinates)
 		for (int n = 0; n < dataLength; n++){
-			vec3 newPoint = generateVec3(vec2(-10, 10), vec2(-5, 5), vec2(-15, 0));
+			glm::vec3 newPoint = generateVec3(glm::vec2(-10, 10), glm::vec2(-5, 5), glm::vec2(-15, 0));
 			points[n] = newPoint.x;
 			points[n + 1] = newPoint.y;
 			points[n + 2] = newPoint.z;
@@ -178,7 +175,7 @@ namespace ModelManager{
 		//     orthographic    left         right      top   bot   near  far
 
 		// only needs setting here and on window dimension changes
-		Projection = perspective(FOV, AR, NEARclip, FARclip); // set default projection
+		Projection = glm::perspective(FOV, AR, NEARclip, FARclip); // set default projection
 
 		//vec3 spawnPoint = vec3(0, 0, 0); // spawn position
 		//Model = translate(Model, spawnPoint); // setup models
@@ -186,7 +183,7 @@ namespace ModelManager{
 		View = lookAt(eyePosition, targetPosition, upDirection); // set up default camera
 	}
 	
-	void moveObserver(vec3 direction){
+	void moveObserver(glm::vec3 direction){
 		// pretty standard - move the eye and the target together
 		eyePosition += direction * MOVESPEED;
 		targetPosition += direction * MOVESPEED;
