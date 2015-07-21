@@ -46,7 +46,7 @@ namespace ModelManager{
 		TwWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // set the initial height for the antTweakBar
 		
 		moveSetValue = 25;
-		MOVESPEED = (float)moveSetValue / 5000;
+		MOVESPEED = (float)moveSetValue / 500;
 		
 		eyePosition = vec3(0, 0, 15);
 		targetPosition = vec3(0, 0, 14);
@@ -70,7 +70,7 @@ namespace ModelManager{
 	}
 
 	void updateSettings(){
-		MOVESPEED = (float)moveSetValue / 5000;
+		MOVESPEED = (float)moveSetValue / 500;
 		rotationSpeed = (float)rotateSetValue / 50000000;
 	}
 

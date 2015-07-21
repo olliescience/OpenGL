@@ -133,6 +133,7 @@ void drawDebugText(){ // draws useful information to the screen
 
 	}
 
+int lastTime = 0;
 void display(){
 		// all display related code in here
 		glClearColor(0.0, 0.0, 0.1, 1.0); // the color to clear to (dark navy)
@@ -151,10 +152,9 @@ void display(){
 		}
 
 		// timer code (bugged)
-		ShaderManager::deltaTime = 1;
-		//int currentTime = glutGet(GLUT_ELAPSED_TIME);
-		//deltaTime = currentTime - lastTime;
-		//lastTime = currentTime;
+		int currentTime = glutGet(GLUT_ELAPSED_TIME);
+		ShaderManager::deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
 
 		//cout << "screen cleared" << endl;
 		glUseProgram(ShaderManager::pointShader); // using a shader program from init()...
