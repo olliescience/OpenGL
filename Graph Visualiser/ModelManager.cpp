@@ -148,7 +148,7 @@ namespace ModelManager{
 	void initialiseModel(){ // sets data and buffers
 
 		// generate a sea of points...
-		const int dataLength = 300;
+		const int dataLength = 15;
 		float points[dataLength]; // creates  place to hold 150 floats (50 coordinates)
 		for (int n = 0; n < dataLength; n++){
 			vec3 newPoint = generateVec3(vec2(-10, 10), vec2(-5, 5), vec2(-15, 0));

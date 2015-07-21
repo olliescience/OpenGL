@@ -159,20 +159,18 @@ void display(){
 		//cout << "screen cleared" << endl;
 		glUseProgram(ShaderManager::pointShader); // using a shader program from init()...
 		//cout << "using shader program" << endl;
-
-
+		
 		glBindVertexArray(ShaderManager::vao);
 		ShaderManager::updateShader(ShaderManager::pointShader);
-		glDrawArrays(GL_POINTS, 0, 100); // draw the points in the currently bound vao with current shader
+		glDrawArrays(GL_POINTS, 0, 5); // draw the points in the currently bound vao with current shader
 		
-
 		glUseProgram(ShaderManager::lineShader); // using a shader program from init()...
 		//cout << "using shader program" << endl;
 
 		ShaderManager::updateShader(ShaderManager::lineShader);
 
-		glDrawArrays(GL_LINES, 0, 100); // draw lines using points starting at 0, 25 lines
-		glDrawArrays(GL_LINES, 1, 99); // draw some more lines xD
+		glDrawArrays(GL_LINES, 0, 5); // draw lines using points starting at 0, 25 lines
+		glDrawArrays(GL_LINES, 1, 4); // draw some more lines xD
 
 		//glFlush(); // applies given commands to (single) buffer
 		glutSwapBuffers();
