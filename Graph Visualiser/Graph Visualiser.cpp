@@ -9,7 +9,7 @@
 
 // TODO: 
 // 1. background color variables in tweak bar    | 100%
-// 2. dynamic point to point camera transition   | 0%
+// 2. dynamic point to point camera transition   | 90%
 // 3. runtime point position manipulation        | 0%
 // 4. around point rotation                      | 5%
 // 5. node/edge labels & 'selection'             | 0%

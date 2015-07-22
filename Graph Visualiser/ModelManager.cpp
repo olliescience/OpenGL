@@ -185,18 +185,18 @@ namespace ModelManager{
 	
 	void moveObserver(glm::vec3 direction){
 		// pretty standard - move the eye and the target together
-		eyePosition += direction * MOVESPEED;
-		targetPosition += direction * MOVESPEED;
+		eyePosition += direction * MOVESPEED * ShaderManager::deltaTime;
+		targetPosition += direction * MOVESPEED * ShaderManager::deltaTime;
 
 		updateViewer();
 	}
 
-	glm::vec3 oldeyePosition, lookDirection;
+	glm::vec3 oldeyePosition, lookDirection; // for the following method
 	void transitionObserver(glm::vec3 destination,  float percentage){
-		lookDirection = targetPosition - eyePosition;
-		oldeyePosition = eyePosition;
-		eyePosition = oldeyePosition + (destination - oldeyePosition) * percentage;
-		targetPosition = eyePosition + lookDirection;
+		lookDirection = targetPosition - eyePosition; // get the direction the camera is looking
+		oldeyePosition = eyePosition; // set old position
+		eyePosition = oldeyePosition + (destination - oldeyePosition) * percentage * ShaderManager::deltaTime; // move smoothly
+		targetPosition = eyePosition + lookDirection; // retain looking direction
 		updateViewer();
 	}
 }
