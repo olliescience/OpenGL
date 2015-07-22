@@ -190,4 +190,13 @@ namespace ModelManager{
 
 		updateViewer();
 	}
+
+	glm::vec3 oldeyePosition, lookDirection;
+	void transitionObserver(glm::vec3 destination,  float percentage){
+		lookDirection = targetPosition - eyePosition;
+		oldeyePosition = eyePosition;
+		eyePosition = oldeyePosition + (destination - oldeyePosition) * percentage;
+		targetPosition = eyePosition + lookDirection;
+		updateViewer();
+	}
 }

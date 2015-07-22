@@ -8,13 +8,13 @@
 #include "DataManager.h"
 
 // TODO: 
-// 1. get vbo and vao working & understood                                | 90%
-// 2. update the display callback to accommodate changes                  | 90%
-// 3. create shaders and get them working                                 | 100%
-// 4. add keyboard controls and camera manipulation                       | 100%
-// 5. add debugging text overlay (perhaps before (4)) <-raster text       | 100%
-// 6. splice the source into separate files for consistency               | 100%
+// 1. background color variables in tweak bar    | 100%
+// 2. dynamic point to point camera transition   | 0%
+// 3. runtime point position manipulation        | 0%
+// 4. around point rotation                      | 5%
+// 5. node/edge labels & 'selection'             | 0%
 
+float bgRed, bgGreen, bgBlue;
 void createTweakBar(){
 	// create tweak bar for practice
 	TwBar *testBar; // create a place to hold a tweak bar 
@@ -32,6 +32,9 @@ void createTweakBar(){
 	TwAddVarRW(testBar, "lineRed", TW_TYPE_FLOAT, &ShaderManager::lineRed, "min=0 max=1 step=0.1");
 	TwAddVarRW(testBar, "lineGreen", TW_TYPE_FLOAT, &ShaderManager::lineGreen, "min=0 max=1 step=0.1");
 	TwAddVarRW(testBar, "lineBlue", TW_TYPE_FLOAT, &ShaderManager::lineBlue, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "bgRed", TW_TYPE_FLOAT, &bgRed, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "bgGreen", TW_TYPE_FLOAT, &bgGreen, "min=0 max=1 step=0.1");
+	TwAddVarRW(testBar, "bgBlue", TW_TYPE_FLOAT, &bgBlue, "min=0 max=1 step=0.1");
 	
 	TwDefine(" TW_HELP visible=false "); // remove the default help bar given by ATB
 }
@@ -135,7 +138,7 @@ void drawDebugText(){ // draws useful information to the screen
 int lastTime = 0;
 void display(){
 		// all display related code in here
-		glClearColor(0.0, 0.0, 0.1, 1.0); // the color to clear to (dark navy)
+		glClearColor(bgRed, bgGreen, bgBlue, 1.0); // the color to clear to (dark navy)
 		glClear(GL_COLOR_BUFFER_BIT); // apply the clear with the given color
 
 		InputManager::updateControls(); // update all inputs 

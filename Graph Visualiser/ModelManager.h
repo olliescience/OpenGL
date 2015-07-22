@@ -45,4 +45,5 @@ namespace ModelManager{
 	extern void initialiseMatrices();
 	extern glm::vec3 generateVec3(glm::vec2 xRange, glm::vec2 yRange, glm::vec2 zRange);
 	extern void moveObserver(glm::vec3 direction);
+	extern void transitionObserver(glm::vec3 destination, float percentage);
 }
