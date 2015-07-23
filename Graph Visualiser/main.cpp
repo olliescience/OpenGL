@@ -14,7 +14,7 @@
 // 4. around point rotation                      | 5%
 // 5. node/edge labels & 'selection'             | 0%
 
-float bgRed, bgGreen, bgBlue;
+float bgRed, bgGreen, bgBlue; // for adjusting the background color
 void createTweakBar(){
 	// create tweak bar for practice
 	TwBar *testBar; // create a place to hold a tweak bar 
@@ -135,7 +135,7 @@ void drawDebugText(){ // draws useful information to the screen
 
 	}
 
-int lastTime = 0;
+int lastTime = 0; // slot for timer code & manipulation
 void display(){
 		// all display related code in here
 		glClearColor(bgRed, bgGreen, bgBlue, 1.0); // the color to clear to (dark navy)

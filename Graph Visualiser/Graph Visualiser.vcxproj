@@ -87,7 +87,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Graph Visualiser.h" />
+    <ClInclude Include="main.h" />
     <ClInclude Include="DataManager.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="ModelManager.h" />
@@ -97,7 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DataManager.cpp" />
-    <ClCompile Include="Graph Visualiser.cpp">
+    <ClCompile Include="main.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\Ollie\Source\Repos\OpenGL\Libraries\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\Ollie\Source\Repos\OpenGL\Libraries\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

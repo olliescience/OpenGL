@@ -1,6 +1,6 @@
 // file giving more sophisticated input controls
 #include "stdafx.h"
-#include "Graph Visualiser.h"
+#include "main.h"
 #include "ModelManager.h"
 #include "AntTweakBar.h"
 
@@ -130,7 +130,7 @@ namespace InputManager{
 		}
 		if (keyState['t'] == PRESSED){ // vertical up pan
 			ModelManager::moveObserver(ModelManager::upDirection);
-			//isTransitioning = false; // interrupt transition
+			isTransitioning = false; // interrupt transition
 		}
 		if (keyState['g'] == PRESSED){ // vertical down pan
 			ModelManager::moveObserver(-ModelManager::upDirection);

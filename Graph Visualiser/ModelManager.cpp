@@ -1,6 +1,6 @@
 // provide model and camera modification logic
 #include "stdafx.h" // include the standard library (modified)
-#include "Graph Visualiser.h" // include the main file
+#include "main.h"
 #include "InputManager.h"
 #include "ShaderManager.h"
 #include "AntTweakBar.h"
